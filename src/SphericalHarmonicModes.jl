@@ -143,4 +143,20 @@ function t_valid(m::moderange,s::Integer)
 	max(-s,m.tmin):min(s,m.tmax)
 end
 
+function Base.show(io::IO, m::moderange)
+	print(io,"(s=",m.smin:m.smax,",t=",m.tmin:m.tmax,")")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", m::st)
+	println("Spherical harmonic modes with s increasing faster than t")
+    print(io,"smin = ",m.smin,", smax = ",m.smax,
+    	", tmin = ",m.tmin,", tmax = ",m.tmax)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", m::ts)
+	println("Spherical harmonic modes with t increasing faster than s")
+    print(io,"smin = ",m.smin,", smax = ",m.smax,
+    	", tmin = ",m.tmin,", tmax = ",m.tmax)
+end
+
 end # module
