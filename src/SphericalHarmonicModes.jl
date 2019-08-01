@@ -52,6 +52,12 @@ struct ts <: SHModeRange
 	end
 end
 
+ts(smin,smax) = ts(smin,smax,-smax,smax)
+st(smin,smax) = st(smin,smax,-smax,smax)
+
+ts(s) = ts(s,s)
+st(s) = st(s,s)
+
 struct OrderError{T} <: Exception
 	var :: String
 	low :: T
@@ -128,7 +134,7 @@ function Base.iterate(m::ts, state=((first_s(m),first_t(m)), 1))
 end
 
 function Base.in((s,t)::Tuple{<:Integer,<:Integer},m::SHModeRange)
-	(m.smin <= s <= m.smax) && (m.tmin <= t <= m.tmax)
+	(abs(t)<=s) && (m.smin <= s <= m.smax) && (m.tmin <= t <= m.tmax)
 end
 
 function modeindex(m::st,s::Integer,t::Integer)
