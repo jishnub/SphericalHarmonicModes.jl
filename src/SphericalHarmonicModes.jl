@@ -69,11 +69,20 @@ struct tRangeError <: Exception
 	t :: Integer
 end
 
+struct ModeMissingError{T} <: Exception
+	s :: T
+	t :: T
+	m :: SHModeRange
+end
+
 Base.showerror(io::IO, e::tRangeError) = print(io," t = ", e.t,
 		" does not satisfy ",-e.smax," ⩽ t ⩽ ",e.smax)
 
 Base.showerror(io::IO, e::OrderError) = print(io,e.var,"min = ",e.low,
 	" is not consistent with ",e.var,"max = ",e.high)
+
+Base.showerror(io::IO, e::ModeMissingError) = print(io,"Mode with (s=",e.s,",t=",e.t,")",
+			" is not included in the range given by s=",e.m.smin:e.m.smax,", t=",e.m.tmin:e.m.tmax)
 
 Base.eltype(m::SHModeRange) = Tuple{Int64,Int64}
 
@@ -138,6 +147,8 @@ function Base.in((s,t)::Tuple{<:Integer,<:Integer},m::SHModeRange)
 end
 
 function modeindex(m::st,s::Integer,t::Integer)
+	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
+
 	N_skip = 0
 	for ti in m.tmin:t-1
 		N_skip += length(s_valid_range(m,ti))
@@ -148,6 +159,8 @@ function modeindex(m::st,s::Integer,t::Integer)
 end
 
 function modeindex(m::ts,s::Integer,t::Integer)
+	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
+
 	N_skip = 0
 	for si in m.smin:s-1
 		N_skip += length(t_valid_range(m,si))
