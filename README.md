@@ -102,7 +102,7 @@ julia> (1000,1000) in m
 true
 ```
 
-However the index at which a mode is present can be checked using
+The index at which a mode is present can be checked using `modeindex`. For example
 ```julia
 julia> m=ts(0,2,-1,2)
 Spherical harmonic modes with t increasing faster than s
@@ -126,7 +126,7 @@ julia> modeindex(m,(2,2))
 8
 ```
 
-Currently this iterates over the modes, so it might be slow for larger ranges. 
+Currently this iterates over the modes, so it will be slow for larger ranges. 
 
 ```julia
 julia> m=ts(0,20000);
