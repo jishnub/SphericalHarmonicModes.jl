@@ -52,11 +52,22 @@ struct ts <: SHModeRange
 	end
 end
 
-ts(smin,smax) = ts(smin,smax,-smax,smax)
-st(smin,smax) = st(smin,smax,-smax,smax)
+ts(smin::Integer,smax::Integer) = ts(smin,smax,-smax,smax)
+st(smin::Integer,smax::Integer) = st(smin,smax,-smax,smax)
 
-ts(s) = ts(s,s)
-st(s) = st(s,s)
+ts(s::Integer) = ts(s,s)
+st(s::Integer) = st(s,s)
+
+ts(s_range::AbstractUnitRange,t_range::AbstractUnitRange) = 
+	ts(minimum(s_range),maximum(s_range),minimum(t_range),maximum(t_range))
+st(s_range::AbstractUnitRange,t_range::AbstractUnitRange) = 
+	st(minimum(s_range),maximum(s_range),minimum(t_range),maximum(t_range))
+
+ts(s_range::AbstractUnitRange,t::Integer) = ts(minimum(s_range),maximum(s_range),t,t)
+ts(s::Integer,t_range::AbstractUnitRange) = ts(s,s,minimum(t_range),maximum(t_range))
+
+st(s_range::AbstractUnitRange,t::Integer) = st(minimum(s_range),maximum(s_range),t,t)
+st(s::Integer,t_range::AbstractUnitRange) = st(s,s,minimum(t_range),maximum(t_range))
 
 struct OrderError{T} <: Exception
 	var :: String
