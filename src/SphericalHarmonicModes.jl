@@ -341,7 +341,7 @@ function modeindex(m::ts,s::Integer,t::Integer)
 	Nskip + searchsortedfirst(t_valid_range(m,s),t)
 end
 
-modeindex(m::SHModeRange,(s,t)::Tuple{<:Integer,<:Integer}) = modeindex2(m,s,t)
+modeindex(m::SHModeRange,(s,t)::Tuple{<:Integer,<:Integer}) = modeindex(m,s,t)
 
 function s_valid_range(m::SHModeRange,t::Integer)
 	max(abs(t),m.smin):m.smax

@@ -126,13 +126,14 @@ julia> modeindex(m,(2,2))
 8
 ```
 
-Currently this iterates over the modes, so it will be slow for larger ranges. 
+This is also evaluated in `O(1)` time.
 
 ```julia
 julia> m=ts(0,20000);
 
 julia> @btime modeindex(m,(20000,20000))
-  24.461 μs (1 allocation: 16 bytes)
+  74.562 ns (1 allocation: 16 bytes)
+400040001
 ```
 
 Indexing is not supported at the moment.
