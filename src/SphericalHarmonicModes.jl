@@ -1,6 +1,6 @@
 module SphericalHarmonicModes
 
-export SHModeRange,st,ts,modeindex,s_valid_range,t_valid_range
+export SHModeRange,st,ts,modeindex,s_valid_range,t_valid_range,s_range,t_range
 
 abstract type SHModeRange end
 
@@ -181,7 +181,192 @@ function modeindex(m::ts,s::Integer,t::Integer)
 	N_skip + t - tmin_s + 1
 end
 
+function modeindex2(m::st,s::Integer,t::Integer)
+	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
+	Nskip = 0
+	
+	smin,smax = extrema(s_range(m))
+	tmin,tmax = extrema(t_range(m))
+
+	# Nskip = sum(length(s_valid_range(m,ti)) fot ti=m.tmin:t-1)
+
+	if smin == 0 && t > 1 && tmin <= 0
+		Nskip += -div((-1 + t)*(-2 - 2smax + t),2)
+	elseif smin > 0 && t > 1 + smin && tmin == smin
+		Nskip += div(-2 - 2smax + 3t + 2smax*t - t^2 - tmin - 2smax*tmin + tmin^2,2)
+	elseif smin > 0 && t > 1 + smin && tmin < smin
+		Nskip += div((1 + smin - t)*(-2 - 2smax + smin + t),2)
+	elseif (smin == 0 && t > 1 && tmin == -1 + t) || (smin > 0 && t > 1 + smin && tmin == -1 + t)
+		Nskip += 1 + smax - tmin
+	elseif (smin == 0 && t > 1 && 0 < tmin < -1 + t) || (smin > 0 && t > 1 + smin && smin < tmin < -1 + t)
+		Nskip += -div((t - tmin)*(-3 - 2smax + t + tmin),2)	
+	end
+
+	if smin == 0 && t >= 1 && tmin < 0
+		Nskip += -div(tmin*(1 + 2smax + tmin),2)
+	elseif smin > 0 && t == 1 - smin && tmin < -1 + t
+		Nskip += div((-1 + t - tmin)*(2smax + t + tmin),2)
+	elseif smin > 0 && t > 1 - smin && tmin < -smin
+		Nskip += div((-1 - 2smax + smin - tmin)*(smin + tmin),2)
+	elseif (smin == 0 && t < 1 && tmin == -1 + t) || (smin > 0 && t < 1 - smin && tmin == -1 + t)
+		Nskip += 1 + smax + tmin
+	elseif (smin == 0 && t < 1 && tmin < -1 + t) || (smin > 0 && t < 1 - smin && tmin < -1 + t)
+		Nskip += div((t - tmin)*(1 + 2smax + t + tmin),2)
+	end
+
+	if smin > 0 && t == 1 - smin && tmin < -1 + t
+		Nskip += 1 + smax - smin
+	elseif smin > 0 && t > 1 + smin && -smin <= tmin < smin
+		Nskip += (1 + smax - smin)*(1 + smin - tmin)
+	elseif smin > 0 && t > 1 + smin && tmin < -smin
+		Nskip += (1 + smax - smin)*(1 + 2smin)
+	elseif smin > 0 && 1 - smin < t <= 1 + smin && -smin <= tmin < -1 + t
+		Nskip += (1 + smax - smin)*(t - tmin)
+	elseif smin > 0 && 1 - smin < t <= 1 + smin && tmin < -smin
+		Nskip += (1 + smax - smin)*(smin + t)
+	elseif (smin == 0 && t == 1 && tmin <= 0) || (smin == 0 && t > 1 && 
+		   tmin < 0) || (smin == 0 && t > 1 && tmin == 0) || (smin > 0 && 
+		   t == 1 - smin && tmin == -1 + t) || (smin > 0 && t > 1 + smin && 
+		   tmin == smin) || (smin > 0 && 1 - smin < t <= 1 + smin && 
+		   tmin == -1 + t)
+
+		Nskip += 1 + smax - smin
+	end
+
+	Nskip + searchsortedfirst(s_valid_range(m,t),s)
+end
+
+function modeindex2(m::ts,s::Integer,t::Integer)
+	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
+	Nskip = 0
+	
+	smin,smax = extrema(s_range(m))
+	tmin,tmax = extrema(t_range(m))
+
+	# Nskip = sum(length(t_valid_range(m,si)) for si=m.smin:s-1)
+
+	if (s > 1 && smin == 0 && 0 < tmax < -1 + s && tmin > -tmax) || 
+		(s > 1 && 0 < smin < -1 + s && smin < tmax < -1 + s && tmin > -tmax)
+
+		Nskip += (-1 + s - tmax)*(1 + tmax - tmin)
+
+    elseif s > 1 && 0 < smin < -1 + s && tmax < smin && tmin > -smin
+    	Nskip +=  (s - smin)*(1 + tmax - tmin)
+    elseif (s == 1 && smin == 0 && tmax < 0 && tmin > 0) || (s > 1 && 
+   		smin == -1 + s && tmax < smin && tmin > -smin)
+
+    	Nskip += 1 + tmax - tmin
+    elseif (s > 1 && smin == 0 && tmax == 0 && tmin >= 0) || (s > 1 && 
+   		smin == 0 && tmax < 0 && tmin == 0)
+
+    	Nskip += (-1 + s)*(1 + tmax - tmin)
+
+    elseif (s > 1 && 0 < smin < -1 + s && tmax == smin && 
+		   tmin >= -tmax) || (s > 1 && 0 < smin < -1 + s && tmax < smin && 
+		   tmin == -smin)
+
+		Nskip += (-1 + s - smin)*(1 + tmax - tmin)
+	elseif (s > 1 && smin == 0 && tmax == 0 && 1 - s < tmin < 0) || (s > 1 && 
+		   smin == 0 && 0 < tmax < -1 + s && 1 - s < tmin <= -tmax) || 
+			(s > 1 && smin == 0 && tmax < 0 && 1 - s < tmin < 0) || 
+			(s > 1 && 0 < smin < -1 + s && tmax == smin && 1 - s < tmin < -tmax) || 
+			(s > 1 && 0 < smin < -1 + s && smin < tmax < -1 + s && 1 - s < tmin <= -tmax) || 
+			(s > 1 && 0 < smin < -1 + s && tmax < smin && 1 - s < tmin < -smin)
+
+		Nskip += (1 + tmax - tmin)*(-1 + s + tmin)
+    end
+
+    if s > 1 && smin == 0 && tmax > -1 + s && tmin < 1 - s
+    	Nskip += s^2
+    elseif s > 1 && 0 < smin < -1 + s && tmax > -1 + s && tmin < 1 - s
+    	Nskip += (s - smin)*(s + smin)
+    elseif s > 1 && 0 < smin < -1 + s && smin < tmax <= -1 + s && tmin < -tmax
+    	Nskip += -(-1 + smin - tmax)*(1 + smin + tmax)
+    elseif (s > 1 && smin == 0 && tmax == -1 + s && tmin < -tmax) || 
+    	(s > 1 && smin == 0 && 0 < tmax < -1 + s && tmin <= -tmax)
+    	Nskip += (1 + tmax)*(1 + 2smin + tmax)
+    elseif (s > 1 && 0 < smin < -1 + s && tmax > -1 + s && 1 - s <= tmin < -smin) || 
+		(s > 1 && 0 < smin < -1 + s && smin < tmax <= -1 + s && -tmax <= tmin < -smin)
+
+		Nskip += -(1 + smin - tmin)*(-1 + smin + tmin)
+	elseif (s > 1 && smin == 0 && tmax == -1 + s && -tmax <= tmin < 0) || 
+		(s > 1 && smin == 0 && tmax > -1 + s && 1 - s <= tmin < 0) || 
+		(s > 1 && smin == 0 && 0 < tmax < -1 + s && -tmax < tmin < 0)
+
+		Nskip += (-1 + tmin)*(-1 - 2smin + tmin)
+
+	elseif (s == 1 && smin == 0 && tmax >= 0 && tmin <= 0) || 
+		(s > 1 && smin == 0 && tmax == 0 && tmin <= 0) || 
+		(s > 1 && smin == 0 && tmax == -1 + s && tmin == 0) || 
+		(s > 1 && smin == 0 && tmax > -1 + s && tmin == 0) || 
+		(s > 1 && smin == 0 && 0 < tmax < -1 + s && tmin == 0) || 
+		(s > 1 && smin == -1 + s && tmax == smin && tmin <= -tmax) || 
+		(s > 1 && smin == -1 + s && tmax > smin && tmin <= -smin) || 
+		(s > 1 && 0 < smin < -1 + s && tmax == smin && tmin <= -tmax) || 
+		(s > 1 && 0 < smin < -1 + s && tmax > -1 + s && tmin == -smin) || 
+		(s > 1 && 0 < smin < -1 + s && smin < tmax <= -1 + s && tmin == -smin)
+
+		Nskip += 1 + 2smin
+    end
+
+    if s >= 1 && 0 <= smin < -1 + s && tmax > -1 + s && tmin == -smin
+    	Nskip += div(-2 + s + s^2 - smin - 2s*smin + smin^2 + 4tmin - 4s*tmin + 4smin*tmin,2)
+    elseif s >= 1 && 0 <= smin < -1 + s && tmax > -1 + s && tmin > -smin
+    	Nskip += div((s - smin)*(1 + s + smin - 2tmin),2)
+    elseif s >= 1 && 0 <= smin < -1 + s && tmax > -1 + s && 1 - s < tmin < -smin
+    	Nskip += div((2 + s - 3tmin)*(-1 + s + tmin),2)
+    elseif s >= 1 && 0 <= smin < -1 + s && smin < tmax <= -1 + s && tmin == -smin
+    	Nskip += div(-3smin + smin^2 + 3tmax - 2smin*tmax + tmax^2 + 4smin*tmin - 4tmax*tmin,2)
+    elseif s >= 1 && 0 <= smin < -1 + s && smin < tmax <= -1 + s && tmin > -smin
+    	Nskip += -div((-1 + smin - tmax)*(2 + smin + tmax - 2tmin),2)
+    elseif s >= 1 && 0 <= smin < -1 + s && 
+		smin < tmax <= -1 + s && -tmax < tmin < -smin
+		
+		Nskip += div((3 + tmax - 3tmin)*(tmax + tmin),2)
+	elseif (s >= 1 && smin == -1 + s && tmax == smin && tmin > -tmax) || 
+		(s >= 1 && smin == -1 + s && tmax > smin && tmin > -smin) || 
+		(s >= 1 && 0 <= smin < -1 + s && tmax == smin && tmin > -tmax)
+
+		Nskip += 1 + smin - tmin
+    end
+
+    if s > 1 && smin == 0 && tmax == 0 && 1 - s <= tmin < 0
+    	Nskip += div(-3tmin + tmin^2,2)
+    elseif s > 1 && smin == 0 && tmax == 0 && tmin < 1 - s
+    	Nskip += div(-2 + s + s^2,2)
+    elseif s > 1 && smin == 0 && 0 < tmax < -1 + s && 1 - s <= tmin < -tmax
+    	Nskip += -div((3 + 3tmax - tmin)*(tmax + tmin),2)
+    elseif s > 1 && smin == 0 && 0 < tmax < -1 + s && tmin < 1 - s
+    	Nskip += div((-1 + s - tmax)*(2 + s + 3tmax),2)
+    elseif s > 1 && smin == 0 && tmax < 0 && 1 - s < tmin < 0
+    	Nskip += div((-1 + tmin)*(-2 - 2tmax + tmin),2)
+    elseif s > 1 && smin == 0 && tmax < 0 && tmin <= 1 - s
+    	Nskip += div(s*(1 + s + 2tmax),2)
+    elseif s > 1 && 0 < smin < -1 + s && tmax == smin && 1 - s <= tmin < -tmax
+    	Nskip += div(-3smin - smin^2 - 2smin*tmax - 3tmin - 2tmax*tmin + tmin^2,2)
+    elseif s > 1 && 0 < smin < -1 + s && tmax == smin && tmin < 1 - s
+    	Nskip += div(-2 + s + s^2 - 3smin - smin^2 - 2tmax + 2s*tmax - 2smin*tmax,2)
+    elseif s > 1 && 0 < smin < -1 + s && smin < tmax < -1 + s && 1 - s <= tmin < -tmax
+    	Nskip += -div((3 + 3tmax - tmin)*(tmax + tmin),2)
+    elseif s > 1 && 0 < smin < -1 + s && smin < tmax < -1 + s && tmin < 1 - s
+    	Nskip += div((-1 + s - tmax)*(2 + s + 3tmax),2)
+    elseif s > 1 && 0 < smin < -1 + s && tmax < smin && 1 - s <= tmin < -smin
+    	Nskip += -div((2 + smin + 2tmax - tmin)*(-1 + smin + tmin),2)
+	elseif s > 1 && 0 < smin < -1 + s && tmax < smin && tmin < 1 - s
+		Nskip += div((s - smin)*(1 + s + smin + 2tmax),2)
+	elseif (s == 1 && smin == 0 && tmax < 0 && tmin <= 0) || 
+		(s > 1 && smin == 0 && tmax < 0 && tmin == 0) || 
+		(s > 1 && smin == -1 + s && tmax < smin && tmin <= -smin) || 
+		(s > 1 && 0 < smin < -1 + s && tmax < smin && tmin == -smin)
+
+		Nskip += 1 + smin + tmax
+    end
+
+	Nskip + searchsortedfirst(t_valid_range(m,s),t)
+end
+
 modeindex(m::SHModeRange,(s,t)::Tuple{<:Integer,<:Integer}) = modeindex(m,s,t)
+modeindex2(m::SHModeRange,(s,t)::Tuple{<:Integer,<:Integer}) = modeindex2(m,s,t)
 
 function s_valid_range(m::SHModeRange,t::Integer)
 	max(abs(t),m.smin):m.smax
@@ -190,6 +375,9 @@ end
 function t_valid_range(m::SHModeRange,s::Integer)
 	max(-s,m.tmin):min(s,m.tmax)
 end
+
+s_range(m::SHModeRange) = m.smin:m.smax
+t_range(m::SHModeRange) = m.tmin:m.tmax
 
 function Base.show(io::IO, m::SHModeRange)
 	print(io,"(s=",m.smin:m.smax,",t=",m.tmin:m.tmax,")")
