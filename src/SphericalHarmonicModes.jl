@@ -159,30 +159,6 @@ end
 
 function modeindex(m::st,s::Integer,t::Integer)
 	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
-
-	N_skip = 0
-	for ti in m.tmin:t-1
-		N_skip += length(s_valid_range(m,ti))
-	end
-
-	smin_t = max(abs(t),m.smin)
-	N_skip + s - smin_t + 1
-end
-
-function modeindex(m::ts,s::Integer,t::Integer)
-	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
-
-	N_skip = 0
-	for si in m.smin:s-1
-		N_skip += length(t_valid_range(m,si))
-	end
-
-	tmin_s = max(-s,m.tmin)
-	N_skip + t - tmin_s + 1
-end
-
-function modeindex2(m::st,s::Integer,t::Integer)
-	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
 	Nskip = 0
 	
 	smin,smax = extrema(s_range(m))
@@ -236,7 +212,7 @@ function modeindex2(m::st,s::Integer,t::Integer)
 	Nskip + searchsortedfirst(s_valid_range(m,t),s)
 end
 
-function modeindex2(m::ts,s::Integer,t::Integer)
+function modeindex(m::ts,s::Integer,t::Integer)
 	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
 	Nskip = 0
 	
@@ -365,8 +341,7 @@ function modeindex2(m::ts,s::Integer,t::Integer)
 	Nskip + searchsortedfirst(t_valid_range(m,s),t)
 end
 
-modeindex(m::SHModeRange,(s,t)::Tuple{<:Integer,<:Integer}) = modeindex(m,s,t)
-modeindex2(m::SHModeRange,(s,t)::Tuple{<:Integer,<:Integer}) = modeindex2(m,s,t)
+modeindex(m::SHModeRange,(s,t)::Tuple{<:Integer,<:Integer}) = modeindex2(m,s,t)
 
 function s_valid_range(m::SHModeRange,t::Integer)
 	max(abs(t),m.smin):m.smax

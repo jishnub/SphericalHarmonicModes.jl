@@ -1,0 +1,1579 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 11.2' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     58027,       1571]
+NotebookOptionsPosition[     56830,       1542]
+NotebookOutlinePosition[     57172,       1557]
+CellTagsIndexPosition[     57129,       1554]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+
+Cell[CellGroupData[{
+Cell[BoxData[
+ RowBox[{"num", "=", 
+  RowBox[{"Assuming", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"Element", "[", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"tmin", ",", "t", ",", "smin", ",", "smax"}], "}"}], ",", 
+       "Integers"}], "]"}], "&&", 
+     RowBox[{"smin", "\[GreaterEqual]", "0"}], "&&", 
+     RowBox[{"smax", "\[GreaterEqual]", "smin"}], "&&", 
+     RowBox[{"t", "\[LessEqual]", "smax"}], "&&", 
+     RowBox[{"t", "\[GreaterEqual]", 
+      RowBox[{"-", "smax"}]}], "&&", 
+     RowBox[{"t", "\[GreaterEqual]", "tmin"}]}], ",", "\[IndentingNewLine]", 
+    RowBox[{"Sum", "[", 
+     RowBox[{
+      RowBox[{"smax", "-", 
+       RowBox[{"Max", "[", 
+        RowBox[{
+         RowBox[{"Abs", "[", "t", "]"}], ",", "smin"}], "]"}], "+", "1"}], 
+      ",", 
+      RowBox[{"{", 
+       RowBox[{"t", ",", "tmin", ",", 
+        RowBox[{"t", "-", "1"}]}], "}"}]}], "]"}]}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.775215466117951*^9, 3.775215466776266*^9}, {
+   3.775215504761478*^9, 3.775215669977824*^9}, {3.775217011234377*^9, 
+   3.775217011768331*^9}, {3.775217053988151*^9, 3.7752170542746563`*^9}, 
+   3.775217729215173*^9, {3.775218421974174*^9, 
+   3.775218433823472*^9}},ExpressionUUID->"1d48e86c-a0c4-453c-ad9d-\
+8989e422d6f3"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(", 
+   TagBox[GridBox[{
+      {"\[Piecewise]", GridBox[{
+         {
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox["1", "2"]}], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "t"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "2"}], "-", 
+             RowBox[{"2", " ", "smax"}], "+", "t"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+           RowBox[{"t", ">", "1"}], "&&", 
+           RowBox[{"tmin", "\[LessEqual]", "0"}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "2"}], "-", 
+             RowBox[{"2", " ", "smax"}], "+", 
+             RowBox[{"3", " ", "t"}], "+", 
+             RowBox[{"2", " ", "smax", " ", "t"}], "-", 
+             SuperscriptBox["t", "2"], "-", "tmin", "-", 
+             RowBox[{"2", " ", "smax", " ", "tmin"}], "+", 
+             SuperscriptBox["tmin", "2"]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"smin", ">", "0"}], "&&", 
+           RowBox[{"t", ">", 
+            RowBox[{"1", "+", "smin"}]}], "&&", 
+           RowBox[{"tmin", "\[Equal]", "smin"}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", "smin", "-", "t"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "2"}], "-", 
+             RowBox[{"2", " ", "smax"}], "+", "smin", "+", "t"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"smin", ">", "0"}], "&&", 
+           RowBox[{"t", ">", 
+            RowBox[{"1", "+", "smin"}]}], "&&", 
+           RowBox[{"tmin", "<", "smin"}]}]},
+         {
+          RowBox[{"1", "+", "smax", "-", "tmin"}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"t", ">", "1"}], "&&", 
+             RowBox[{"tmin", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "t"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", ">", "0"}], "&&", 
+             RowBox[{"t", ">", 
+              RowBox[{"1", "+", "smin"}]}], "&&", 
+             RowBox[{"tmin", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "t"}]}]}], ")"}]}]},
+         {
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox["1", "2"]}], " ", 
+           RowBox[{"(", 
+            RowBox[{"t", "-", "tmin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "3"}], "-", 
+             RowBox[{"2", " ", "smax"}], "+", "t", "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"t", ">", "1"}], "&&", 
+             RowBox[{"0", "<", "tmin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "t"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", ">", "0"}], "&&", 
+             RowBox[{"t", ">", 
+              RowBox[{"1", "+", "smin"}]}], "&&", 
+             RowBox[{"smin", "<", "tmin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "t"}]}]}], ")"}]}]},
+         {"0", 
+          TagBox["True",
+           "PiecewiseDefault",
+           AutoDelete->True]}
+        },
+        AllowedDimensions->{2, Automatic},
+        Editable->True,
+        GridBoxAlignment->{
+         "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {{Baseline}}, "RowsIndexed" -> {}},
+        GridBoxItemSize->{
+         "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}},
+           "RowsIndexed" -> {}},
+        GridBoxSpacings->{"Columns" -> {
+            Offset[0.27999999999999997`], {
+             Offset[0.84]}, 
+            Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {
+            Offset[0.2], {
+             Offset[0.4]}, 
+            Offset[0.2]}, "RowsIndexed" -> {}},
+        Selectable->True]}
+     },
+     GridBoxAlignment->{
+      "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+       "RowsIndexed" -> {}},
+     GridBoxItemSize->{
+      "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+       "RowsIndexed" -> {}},
+     GridBoxSpacings->{"Columns" -> {
+         Offset[0.27999999999999997`], {
+          Offset[0.35]}, 
+         Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+         Offset[0.2], {
+          Offset[0.4]}, 
+         Offset[0.2]}, "RowsIndexed" -> {}}],
+    "Piecewise",
+    DeleteWithContents->True,
+    Editable->False,
+    SelectWithContents->True,
+    Selectable->False], ")"}], "+", 
+  RowBox[{"(", 
+   TagBox[GridBox[{
+      {"\[Piecewise]", GridBox[{
+         {
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox["1", "2"]}], " ", "tmin", " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", 
+             RowBox[{"2", " ", "smax"}], "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+           RowBox[{"t", "\[GreaterEqual]", "1"}], "&&", 
+           RowBox[{"tmin", "<", "0"}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "t", "-", "tmin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"2", " ", "smax"}], "+", "t", "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"smin", ">", "0"}], "&&", 
+           RowBox[{"t", "\[Equal]", 
+            RowBox[{"1", "-", "smin"}]}], "&&", 
+           RowBox[{"tmin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "t"}]}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "-", 
+             RowBox[{"2", " ", "smax"}], "+", "smin", "-", "tmin"}], ")"}], 
+           " ", 
+           RowBox[{"(", 
+            RowBox[{"smin", "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"smin", ">", "0"}], "&&", 
+           RowBox[{"t", ">", 
+            RowBox[{"1", "-", "smin"}]}], "&&", 
+           RowBox[{"tmin", "<", 
+            RowBox[{"-", "smin"}]}]}]},
+         {
+          RowBox[{"1", "+", "smax", "+", "tmin"}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"t", "<", "1"}], "&&", 
+             RowBox[{"tmin", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "t"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", ">", "0"}], "&&", 
+             RowBox[{"t", "<", 
+              RowBox[{"1", "-", "smin"}]}], "&&", 
+             RowBox[{"tmin", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "t"}]}]}], ")"}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{"t", "-", "tmin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", 
+             RowBox[{"2", " ", "smax"}], "+", "t", "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"t", "<", "1"}], "&&", 
+             RowBox[{"tmin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "t"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", ">", "0"}], "&&", 
+             RowBox[{"t", "<", 
+              RowBox[{"1", "-", "smin"}]}], "&&", 
+             RowBox[{"tmin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "t"}]}]}], ")"}]}]},
+         {"0", 
+          TagBox["True",
+           "PiecewiseDefault",
+           AutoDelete->True]}
+        },
+        AllowedDimensions->{2, Automatic},
+        Editable->True,
+        GridBoxAlignment->{
+         "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {{Baseline}}, "RowsIndexed" -> {}},
+        GridBoxItemSize->{
+         "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}},
+           "RowsIndexed" -> {}},
+        GridBoxSpacings->{"Columns" -> {
+            Offset[0.27999999999999997`], {
+             Offset[0.84]}, 
+            Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {
+            Offset[0.2], {
+             Offset[0.4]}, 
+            Offset[0.2]}, "RowsIndexed" -> {}},
+        Selectable->True]}
+     },
+     GridBoxAlignment->{
+      "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+       "RowsIndexed" -> {}},
+     GridBoxItemSize->{
+      "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+       "RowsIndexed" -> {}},
+     GridBoxSpacings->{"Columns" -> {
+         Offset[0.27999999999999997`], {
+          Offset[0.35]}, 
+         Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+         Offset[0.2], {
+          Offset[0.4]}, 
+         Offset[0.2]}, "RowsIndexed" -> {}}],
+    "Piecewise",
+    DeleteWithContents->True,
+    Editable->False,
+    SelectWithContents->True,
+    Selectable->False], ")"}], "+", 
+  RowBox[{"(", 
+   TagBox[GridBox[{
+      {"\[Piecewise]", GridBox[{
+         {
+          RowBox[{"1", "+", "smax", "-", "smin"}], 
+          RowBox[{
+           RowBox[{"smin", ">", "0"}], "&&", 
+           RowBox[{"t", "\[Equal]", 
+            RowBox[{"1", "-", "smin"}]}], "&&", 
+           RowBox[{"tmin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "t"}]}]}]},
+         {
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{"1", "+", "smax", "-", "smin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", "smin", "-", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"smin", ">", "0"}], "&&", 
+           RowBox[{"t", ">", 
+            RowBox[{"1", "+", "smin"}]}], "&&", 
+           RowBox[{
+            RowBox[{"-", "smin"}], "\[LessEqual]", "tmin", "<", "smin"}]}]},
+         {
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{"1", "+", "smax", "-", "smin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", 
+             RowBox[{"2", " ", "smin"}]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"smin", ">", "0"}], "&&", 
+           RowBox[{"t", ">", 
+            RowBox[{"1", "+", "smin"}]}], "&&", 
+           RowBox[{"tmin", "<", 
+            RowBox[{"-", "smin"}]}]}]},
+         {
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{"1", "+", "smax", "-", "smin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"t", "-", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"smin", ">", "0"}], "&&", 
+           RowBox[{
+            RowBox[{"1", "-", "smin"}], "<", "t", "\[LessEqual]", 
+            RowBox[{"1", "+", "smin"}]}], "&&", 
+           RowBox[{
+            RowBox[{"-", "smin"}], "\[LessEqual]", "tmin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "t"}]}]}]},
+         {
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{"1", "+", "smax", "-", "smin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"smin", "+", "t"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"smin", ">", "0"}], "&&", 
+           RowBox[{
+            RowBox[{"1", "-", "smin"}], "<", "t", "\[LessEqual]", 
+            RowBox[{"1", "+", "smin"}]}], "&&", 
+           RowBox[{"tmin", "<", 
+            RowBox[{"-", "smin"}]}]}]},
+         {
+          RowBox[{"1", "+", "smax", "-", "smin"}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"t", "\[Equal]", "1"}], "&&", 
+             RowBox[{"tmin", "\[LessEqual]", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"t", ">", "1"}], "&&", 
+             RowBox[{"tmin", "<", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"t", ">", "1"}], "&&", 
+             RowBox[{"tmin", "\[Equal]", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", ">", "0"}], "&&", 
+             RowBox[{"t", "\[Equal]", 
+              RowBox[{"1", "-", "smin"}]}], "&&", 
+             RowBox[{"tmin", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "t"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", ">", "0"}], "&&", 
+             RowBox[{"t", ">", 
+              RowBox[{"1", "+", "smin"}]}], "&&", 
+             RowBox[{"tmin", "\[Equal]", "smin"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"smin", ">", "0"}], "&&", 
+             RowBox[{
+              RowBox[{"1", "-", "smin"}], "<", "t", "\[LessEqual]", 
+              RowBox[{"1", "+", "smin"}]}], "&&", 
+             RowBox[{"tmin", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "t"}]}]}], ")"}]}]},
+         {"0", 
+          TagBox["True",
+           "PiecewiseDefault",
+           AutoDelete->True]}
+        },
+        AllowedDimensions->{2, Automatic},
+        Editable->True,
+        GridBoxAlignment->{
+         "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {{Baseline}}, "RowsIndexed" -> {}},
+        GridBoxItemSize->{
+         "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}},
+           "RowsIndexed" -> {}},
+        GridBoxSpacings->{"Columns" -> {
+            Offset[0.27999999999999997`], {
+             Offset[0.84]}, 
+            Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {
+            Offset[0.2], {
+             Offset[0.4]}, 
+            Offset[0.2]}, "RowsIndexed" -> {}},
+        Selectable->True]}
+     },
+     GridBoxAlignment->{
+      "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+       "RowsIndexed" -> {}},
+     GridBoxItemSize->{
+      "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+       "RowsIndexed" -> {}},
+     GridBoxSpacings->{"Columns" -> {
+         Offset[0.27999999999999997`], {
+          Offset[0.35]}, 
+         Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+         Offset[0.2], {
+          Offset[0.4]}, 
+         Offset[0.2]}, "RowsIndexed" -> {}}],
+    "Piecewise",
+    DeleteWithContents->True,
+    Editable->False,
+    SelectWithContents->True,
+    Selectable->False], ")"}]}]], "Output",
+ CellChangeTimes->{
+  3.775215606696498*^9, {3.775215641657645*^9, 3.775215671163465*^9}, 
+   3.775217014544674*^9, 3.775217057793116*^9, 
+   3.775218434911174*^9},ExpressionUUID->"e4bc0e2b-3ef0-4df2-9547-\
+3f3e3622fcdf"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"num", " ", "/.", " ", 
+  RowBox[{"{", 
+   RowBox[{
+    RowBox[{"tmin", "\[Rule]", "0"}], ",", 
+    RowBox[{"smin", "\[Rule]", "0"}], ",", 
+    RowBox[{"smax", "\[Rule]", "4"}], ",", 
+    RowBox[{"t", "\[Rule]", "3"}]}], "}"}]}]], "Input",
+ CellChangeTimes->{{3.775217016034096*^9, 3.77521706293832*^9}, 
+   3.775217763410685*^9},ExpressionUUID->"179891fa-bf7a-4688-ab6c-\
+b7e55ae2a7af"],
+
+Cell[BoxData["12"], "Output",
+ CellChangeTimes->{3.775217063882538*^9, 
+  3.775217763856481*^9},ExpressionUUID->"e46753f8-841b-411c-af51-\
+7e25e8280034"]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"num", "=", 
+  RowBox[{"Assuming", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"Element", "[", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"tmin", ",", "t", ",", "smin", ",", "tmax", ",", "s"}], "}"}],
+        ",", "Integers"}], "]"}], "&&", 
+     RowBox[{"smin", "\[GreaterEqual]", "0"}], "&&", 
+     RowBox[{"smax", "\[GreaterEqual]", "smin"}], "&&", 
+     RowBox[{"t", "\[LessEqual]", "smax"}], "&&", 
+     RowBox[{"t", "\[GreaterEqual]", 
+      RowBox[{"-", "smax"}]}], "&&", 
+     RowBox[{"tmax", "\[LessEqual]", "smax"}], "&&", 
+     RowBox[{"tmax", "\[GreaterEqual]", 
+      RowBox[{"-", "smax"}]}], "&&", 
+     RowBox[{"t", "\[GreaterEqual]", "tmin"}], "&&", 
+     RowBox[{"t", "\[LessEqual]", "tmax"}], "&&", 
+     RowBox[{"tmin", "\[LessEqual]", "tmax"}]}], ",", "\[IndentingNewLine]", 
+    RowBox[{"Sum", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"Min", "[", 
+        RowBox[{"s", ",", "tmax"}], "]"}], "-", 
+       RowBox[{"Max", "[", 
+        RowBox[{
+         RowBox[{"-", "s"}], ",", "tmin"}], "]"}], "+", "1"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"s", ",", "smin", ",", 
+        RowBox[{"s", "-", "1"}]}], "}"}]}], "]"}]}], "]"}]}]], "Input",
+ CellChangeTimes->{{3.775218304697837*^9, 3.775218414871385*^9}, {
+  3.775219303551168*^9, 3.775219304824552*^9}, {3.77522594213778*^9, 
+  3.775225945421332*^9}, {3.7752261336075277`*^9, 3.775226137821824*^9}, {
+  3.775226218371634*^9, 3.77522623748153*^9}, {3.7752265168656387`*^9, 
+  3.7752265169323263`*^9}, {3.775226637192832*^9, 3.775226641119467*^9}, {
+  3.77522682540091*^9, 
+  3.775226825799693*^9}},ExpressionUUID->"c12d8c23-4527-4356-ba52-\
+c9578febb4b5"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(", 
+   TagBox[GridBox[{
+      {"\[Piecewise]", GridBox[{
+         {
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s", "-", "tmax"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", "tmax", "-", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"0", "<", "tmax", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmin", ">", 
+              RowBox[{"-", "tmax"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"0", "<", "smin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"smin", "<", "tmax", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmin", ">", 
+              RowBox[{"-", "tmax"}]}]}], ")"}]}]},
+         {
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{"s", "-", "smin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", "tmax", "-", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"0", "<", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmax", "<", "smin"}], "&&", 
+           RowBox[{"tmin", ">", 
+            RowBox[{"-", "smin"}]}]}]},
+         {
+          RowBox[{"1", "+", "tmax", "-", "tmin"}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", "\[Equal]", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", "<", "0"}], "&&", 
+             RowBox[{"tmin", ">", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", "<", "smin"}], "&&", 
+             RowBox[{"tmin", ">", 
+              RowBox[{"-", "smin"}]}]}], ")"}]}]},
+         {
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", "tmax", "-", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmin", "\[GreaterEqual]", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", "<", "0"}], "&&", 
+             RowBox[{"tmin", "\[Equal]", "0"}]}], ")"}]}]},
+         {
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s", "-", "smin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", "tmax", "-", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"0", "<", "smin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", "\[Equal]", "smin"}], "&&", 
+             RowBox[{"tmin", "\[GreaterEqual]", 
+              RowBox[{"-", "tmax"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"0", "<", "smin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", "<", "smin"}], "&&", 
+             RowBox[{"tmin", "\[Equal]", 
+              RowBox[{"-", "smin"}]}]}], ")"}]}]},
+         {
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{"1", "+", "tmax", "-", "tmin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s", "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", "\[Equal]", "0"}], "&&", 
+             RowBox[{
+              RowBox[{"1", "-", "s"}], "<", "tmin", "<", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"0", "<", "tmax", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{
+              RowBox[{"1", "-", "s"}], "<", "tmin", "\[LessEqual]", 
+              RowBox[{"-", "tmax"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", "<", "0"}], "&&", 
+             RowBox[{
+              RowBox[{"1", "-", "s"}], "<", "tmin", "<", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"0", "<", "smin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", "\[Equal]", "smin"}], "&&", 
+             RowBox[{
+              RowBox[{"1", "-", "s"}], "<", "tmin", "<", 
+              RowBox[{"-", "tmax"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"0", "<", "smin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"smin", "<", "tmax", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{
+              RowBox[{"1", "-", "s"}], "<", "tmin", "\[LessEqual]", 
+              RowBox[{"-", "tmax"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"0", "<", "smin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", "<", "smin"}], "&&", 
+             RowBox[{
+              RowBox[{"1", "-", "s"}], "<", "tmin", "<", 
+              RowBox[{"-", "smin"}]}]}], ")"}]}]},
+         {"0", 
+          TagBox["True",
+           "PiecewiseDefault",
+           AutoDelete->True]}
+        },
+        AllowedDimensions->{2, Automatic},
+        Editable->True,
+        GridBoxAlignment->{
+         "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {{Baseline}}, "RowsIndexed" -> {}},
+        GridBoxItemSize->{
+         "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}},
+           "RowsIndexed" -> {}},
+        GridBoxSpacings->{"Columns" -> {
+            Offset[0.27999999999999997`], {
+             Offset[0.84]}, 
+            Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {
+            Offset[0.2], {
+             Offset[0.4]}, 
+            Offset[0.2]}, "RowsIndexed" -> {}},
+        Selectable->True]}
+     },
+     GridBoxAlignment->{
+      "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+       "RowsIndexed" -> {}},
+     GridBoxItemSize->{
+      "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+       "RowsIndexed" -> {}},
+     GridBoxSpacings->{"Columns" -> {
+         Offset[0.27999999999999997`], {
+          Offset[0.35]}, 
+         Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+         Offset[0.2], {
+          Offset[0.4]}, 
+         Offset[0.2]}, "RowsIndexed" -> {}}],
+    "Piecewise",
+    DeleteWithContents->True,
+    Editable->False,
+    SelectWithContents->True,
+    Selectable->False], ")"}], "+", 
+  RowBox[{"(", 
+   TagBox[GridBox[{
+      {"\[Piecewise]", GridBox[{
+         {
+          SuperscriptBox["s", "2"], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+           RowBox[{"tmax", ">", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmin", "<", 
+            RowBox[{"1", "-", "s"}]}]}]},
+         {
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{"s", "-", "smin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"s", "+", "smin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"0", "<", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmax", ">", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmin", "<", 
+            RowBox[{"1", "-", "s"}]}]}]},
+         {
+          RowBox[{
+           RowBox[{"-", 
+            RowBox[{"(", 
+             RowBox[{
+              RowBox[{"-", "1"}], "+", "smin", "-", "tmax"}], ")"}]}], " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", "smin", "+", "tmax"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"0", "<", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"smin", "<", "tmax", "\[LessEqual]", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmin", "<", 
+            RowBox[{"-", "tmax"}]}]}]},
+         {
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{"1", "+", "tmax"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", 
+             RowBox[{"2", " ", "smin"}], "+", "tmax"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmin", "<", 
+              RowBox[{"-", "tmax"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"0", "<", "tmax", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmin", "\[LessEqual]", 
+              RowBox[{"-", "tmax"}]}]}], ")"}]}]},
+         {
+          RowBox[{
+           RowBox[{"-", 
+            RowBox[{"(", 
+             RowBox[{"1", "+", "smin", "-", "tmin"}], ")"}]}], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "smin", "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"0", "<", "smin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", ">", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{
+              RowBox[{"1", "-", "s"}], "\[LessEqual]", "tmin", "<", 
+              RowBox[{"-", "smin"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"0", "<", "smin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"smin", "<", "tmax", "\[LessEqual]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{
+              RowBox[{"-", "tmax"}], "\[LessEqual]", "tmin", "<", 
+              RowBox[{"-", "smin"}]}]}], ")"}]}]},
+         {
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "tmin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "-", 
+             RowBox[{"2", " ", "smin"}], "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{
+              RowBox[{"-", "tmax"}], "\[LessEqual]", "tmin", "<", "0"}]}], 
+            ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", ">", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{
+              RowBox[{"1", "-", "s"}], "\[LessEqual]", "tmin", "<", "0"}]}], 
+            ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"0", "<", "tmax", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{
+              RowBox[{"-", "tmax"}], "<", "tmin", "<", "0"}]}], ")"}]}]},
+         {
+          RowBox[{"1", "+", 
+           RowBox[{"2", " ", "smin"}]}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", "\[Equal]", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", "\[GreaterEqual]", "0"}], "&&", 
+             RowBox[{"tmin", "\[LessEqual]", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmin", "\[LessEqual]", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmin", "\[Equal]", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", ">", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmin", "\[Equal]", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"0", "<", "tmax", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmin", "\[Equal]", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", "\[Equal]", "smin"}], "&&", 
+             RowBox[{"tmin", "\[LessEqual]", 
+              RowBox[{"-", "tmax"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", ">", "smin"}], "&&", 
+             RowBox[{"tmin", "\[LessEqual]", 
+              RowBox[{"-", "smin"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"0", "<", "smin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", "\[Equal]", "smin"}], "&&", 
+             RowBox[{"tmin", "\[LessEqual]", 
+              RowBox[{"-", "tmax"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"0", "<", "smin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", ">", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmin", "\[Equal]", 
+              RowBox[{"-", "smin"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"0", "<", "smin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"smin", "<", "tmax", "\[LessEqual]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmin", "\[Equal]", 
+              RowBox[{"-", "smin"}]}]}], ")"}]}]},
+         {"0", 
+          TagBox["True",
+           "PiecewiseDefault",
+           AutoDelete->True]}
+        },
+        AllowedDimensions->{2, Automatic},
+        Editable->True,
+        GridBoxAlignment->{
+         "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {{Baseline}}, "RowsIndexed" -> {}},
+        GridBoxItemSize->{
+         "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}},
+           "RowsIndexed" -> {}},
+        GridBoxSpacings->{"Columns" -> {
+            Offset[0.27999999999999997`], {
+             Offset[0.84]}, 
+            Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {
+            Offset[0.2], {
+             Offset[0.4]}, 
+            Offset[0.2]}, "RowsIndexed" -> {}},
+        Selectable->True]}
+     },
+     GridBoxAlignment->{
+      "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+       "RowsIndexed" -> {}},
+     GridBoxItemSize->{
+      "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+       "RowsIndexed" -> {}},
+     GridBoxSpacings->{"Columns" -> {
+         Offset[0.27999999999999997`], {
+          Offset[0.35]}, 
+         Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+         Offset[0.2], {
+          Offset[0.4]}, 
+         Offset[0.2]}, "RowsIndexed" -> {}}],
+    "Piecewise",
+    DeleteWithContents->True,
+    Editable->False,
+    SelectWithContents->True,
+    Selectable->False], ")"}], "+", 
+  RowBox[{"(", 
+   TagBox[GridBox[{
+      {"\[Piecewise]", GridBox[{
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "2"}], "+", "s", "+", 
+             SuperscriptBox["s", "2"], "-", "smin", "-", 
+             RowBox[{"2", " ", "s", " ", "smin"}], "+", 
+             SuperscriptBox["smin", "2"], "+", 
+             RowBox[{"4", " ", "tmin"}], "-", 
+             RowBox[{"4", " ", "s", " ", "tmin"}], "+", 
+             RowBox[{"4", " ", "smin", " ", "tmin"}]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", "\[GreaterEqual]", "1"}], "&&", 
+           RowBox[{"0", "\[LessEqual]", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmax", ">", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmin", "\[Equal]", 
+            RowBox[{"-", "smin"}]}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{"s", "-", "smin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", "s", "+", "smin", "-", 
+             RowBox[{"2", " ", "tmin"}]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", "\[GreaterEqual]", "1"}], "&&", 
+           RowBox[{"0", "\[LessEqual]", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmax", ">", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmin", ">", 
+            RowBox[{"-", "smin"}]}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{"2", "+", "s", "-", 
+             RowBox[{"3", " ", "tmin"}]}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s", "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", "\[GreaterEqual]", "1"}], "&&", 
+           RowBox[{"0", "\[LessEqual]", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmax", ">", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{
+            RowBox[{"1", "-", "s"}], "<", "tmin", "<", 
+            RowBox[{"-", "smin"}]}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"-", "3"}], " ", "smin"}], "+", 
+             SuperscriptBox["smin", "2"], "+", 
+             RowBox[{"3", " ", "tmax"}], "-", 
+             RowBox[{"2", " ", "smin", " ", "tmax"}], "+", 
+             SuperscriptBox["tmax", "2"], "+", 
+             RowBox[{"4", " ", "smin", " ", "tmin"}], "-", 
+             RowBox[{"4", " ", "tmax", " ", "tmin"}]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", "\[GreaterEqual]", "1"}], "&&", 
+           RowBox[{"0", "\[LessEqual]", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"smin", "<", "tmax", "\[LessEqual]", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmin", "\[Equal]", 
+            RowBox[{"-", "smin"}]}]}]},
+         {
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox["1", "2"]}], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "smin", "-", "tmax"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"2", "+", "smin", "+", "tmax", "-", 
+             RowBox[{"2", " ", "tmin"}]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", "\[GreaterEqual]", "1"}], "&&", 
+           RowBox[{"0", "\[LessEqual]", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"smin", "<", "tmax", "\[LessEqual]", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmin", ">", 
+            RowBox[{"-", "smin"}]}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{"3", "+", "tmax", "-", 
+             RowBox[{"3", " ", "tmin"}]}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"tmax", "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", "\[GreaterEqual]", "1"}], "&&", 
+           RowBox[{"0", "\[LessEqual]", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"smin", "<", "tmax", "\[LessEqual]", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{
+            RowBox[{"-", "tmax"}], "<", "tmin", "<", 
+            RowBox[{"-", "smin"}]}]}]},
+         {
+          RowBox[{"1", "+", "smin", "-", "tmin"}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", "\[GreaterEqual]", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", "\[Equal]", "smin"}], "&&", 
+             RowBox[{"tmin", ">", 
+              RowBox[{"-", "tmax"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", "\[GreaterEqual]", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", ">", "smin"}], "&&", 
+             RowBox[{"tmin", ">", 
+              RowBox[{"-", "smin"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", "\[GreaterEqual]", "1"}], "&&", 
+             RowBox[{"0", "\[LessEqual]", "smin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", "\[Equal]", "smin"}], "&&", 
+             RowBox[{"tmin", ">", 
+              RowBox[{"-", "tmax"}]}]}], ")"}]}]},
+         {"0", 
+          TagBox["True",
+           "PiecewiseDefault",
+           AutoDelete->True]}
+        },
+        AllowedDimensions->{2, Automatic},
+        Editable->True,
+        GridBoxAlignment->{
+         "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {{Baseline}}, "RowsIndexed" -> {}},
+        GridBoxItemSize->{
+         "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}},
+           "RowsIndexed" -> {}},
+        GridBoxSpacings->{"Columns" -> {
+            Offset[0.27999999999999997`], {
+             Offset[0.84]}, 
+            Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {
+            Offset[0.2], {
+             Offset[0.4]}, 
+            Offset[0.2]}, "RowsIndexed" -> {}},
+        Selectable->True]}
+     },
+     GridBoxAlignment->{
+      "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+       "RowsIndexed" -> {}},
+     GridBoxItemSize->{
+      "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+       "RowsIndexed" -> {}},
+     GridBoxSpacings->{"Columns" -> {
+         Offset[0.27999999999999997`], {
+          Offset[0.35]}, 
+         Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+         Offset[0.2], {
+          Offset[0.4]}, 
+         Offset[0.2]}, "RowsIndexed" -> {}}],
+    "Piecewise",
+    DeleteWithContents->True,
+    Editable->False,
+    SelectWithContents->True,
+    Selectable->False], ")"}], "+", 
+  RowBox[{"(", 
+   TagBox[GridBox[{
+      {"\[Piecewise]", GridBox[{
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"-", "3"}], " ", "tmin"}], "+", 
+             SuperscriptBox["tmin", "2"]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+           RowBox[{"tmax", "\[Equal]", "0"}], "&&", 
+           RowBox[{
+            RowBox[{"1", "-", "s"}], "\[LessEqual]", "tmin", "<", "0"}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "2"}], "+", "s", "+", 
+             SuperscriptBox["s", "2"]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+           RowBox[{"tmax", "\[Equal]", "0"}], "&&", 
+           RowBox[{"tmin", "<", 
+            RowBox[{"1", "-", "s"}]}]}]},
+         {
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox["1", "2"]}], " ", 
+           RowBox[{"(", 
+            RowBox[{"3", "+", 
+             RowBox[{"3", " ", "tmax"}], "-", "tmin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"tmax", "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+           RowBox[{"0", "<", "tmax", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{
+            RowBox[{"1", "-", "s"}], "\[LessEqual]", "tmin", "<", 
+            RowBox[{"-", "tmax"}]}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s", "-", "tmax"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"2", "+", "s", "+", 
+             RowBox[{"3", " ", "tmax"}]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+           RowBox[{"0", "<", "tmax", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmin", "<", 
+            RowBox[{"1", "-", "s"}]}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "tmin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "2"}], "-", 
+             RowBox[{"2", " ", "tmax"}], "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+           RowBox[{"tmax", "<", "0"}], "&&", 
+           RowBox[{
+            RowBox[{"1", "-", "s"}], "<", "tmin", "<", "0"}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", "s", " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", "s", "+", 
+             RowBox[{"2", " ", "tmax"}]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+           RowBox[{"tmax", "<", "0"}], "&&", 
+           RowBox[{"tmin", "\[LessEqual]", 
+            RowBox[{"1", "-", "s"}]}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"-", "3"}], " ", "smin"}], "-", 
+             SuperscriptBox["smin", "2"], "-", 
+             RowBox[{"2", " ", "smin", " ", "tmax"}], "-", 
+             RowBox[{"3", " ", "tmin"}], "-", 
+             RowBox[{"2", " ", "tmax", " ", "tmin"}], "+", 
+             SuperscriptBox["tmin", "2"]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"0", "<", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmax", "\[Equal]", "smin"}], "&&", 
+           RowBox[{
+            RowBox[{"1", "-", "s"}], "\[LessEqual]", "tmin", "<", 
+            RowBox[{"-", "tmax"}]}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "2"}], "+", "s", "+", 
+             SuperscriptBox["s", "2"], "-", 
+             RowBox[{"3", " ", "smin"}], "-", 
+             SuperscriptBox["smin", "2"], "-", 
+             RowBox[{"2", " ", "tmax"}], "+", 
+             RowBox[{"2", " ", "s", " ", "tmax"}], "-", 
+             RowBox[{"2", " ", "smin", " ", "tmax"}]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"0", "<", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmax", "\[Equal]", "smin"}], "&&", 
+           RowBox[{"tmin", "<", 
+            RowBox[{"1", "-", "s"}]}]}]},
+         {
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox["1", "2"]}], " ", 
+           RowBox[{"(", 
+            RowBox[{"3", "+", 
+             RowBox[{"3", " ", "tmax"}], "-", "tmin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"tmax", "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"0", "<", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"smin", "<", "tmax", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{
+            RowBox[{"1", "-", "s"}], "\[LessEqual]", "tmin", "<", 
+            RowBox[{"-", "tmax"}]}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s", "-", "tmax"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"2", "+", "s", "+", 
+             RowBox[{"3", " ", "tmax"}]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"0", "<", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"smin", "<", "tmax", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmin", "<", 
+            RowBox[{"1", "-", "s"}]}]}]},
+         {
+          RowBox[{
+           RowBox[{"-", 
+            FractionBox["1", "2"]}], " ", 
+           RowBox[{"(", 
+            RowBox[{"2", "+", "smin", "+", 
+             RowBox[{"2", " ", "tmax"}], "-", "tmin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "smin", "+", "tmin"}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"0", "<", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmax", "<", "smin"}], "&&", 
+           RowBox[{
+            RowBox[{"1", "-", "s"}], "\[LessEqual]", "tmin", "<", 
+            RowBox[{"-", "smin"}]}]}]},
+         {
+          RowBox[{
+           FractionBox["1", "2"], " ", 
+           RowBox[{"(", 
+            RowBox[{"s", "-", "smin"}], ")"}], " ", 
+           RowBox[{"(", 
+            RowBox[{"1", "+", "s", "+", "smin", "+", 
+             RowBox[{"2", " ", "tmax"}]}], ")"}]}], 
+          RowBox[{
+           RowBox[{"s", ">", "1"}], "&&", 
+           RowBox[{"0", "<", "smin", "<", 
+            RowBox[{
+             RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+           RowBox[{"tmax", "<", "smin"}], "&&", 
+           RowBox[{"tmin", "<", 
+            RowBox[{"1", "-", "s"}]}]}]},
+         {
+          RowBox[{"1", "+", "smin", "+", "tmax"}], 
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", "\[Equal]", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", "<", "0"}], "&&", 
+             RowBox[{"tmin", "\[LessEqual]", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", "0"}], "&&", 
+             RowBox[{"tmax", "<", "0"}], "&&", 
+             RowBox[{"tmin", "\[Equal]", "0"}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"smin", "\[Equal]", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", "<", "smin"}], "&&", 
+             RowBox[{"tmin", "\[LessEqual]", 
+              RowBox[{"-", "smin"}]}]}], ")"}], "||", 
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"s", ">", "1"}], "&&", 
+             RowBox[{"0", "<", "smin", "<", 
+              RowBox[{
+               RowBox[{"-", "1"}], "+", "s"}]}], "&&", 
+             RowBox[{"tmax", "<", "smin"}], "&&", 
+             RowBox[{"tmin", "\[Equal]", 
+              RowBox[{"-", "smin"}]}]}], ")"}]}]},
+         {"0", 
+          TagBox["True",
+           "PiecewiseDefault",
+           AutoDelete->True]}
+        },
+        AllowedDimensions->{2, Automatic},
+        Editable->True,
+        GridBoxAlignment->{
+         "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {{Baseline}}, "RowsIndexed" -> {}},
+        GridBoxItemSize->{
+         "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}},
+           "RowsIndexed" -> {}},
+        GridBoxSpacings->{"Columns" -> {
+            Offset[0.27999999999999997`], {
+             Offset[0.84]}, 
+            Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, 
+          "Rows" -> {
+            Offset[0.2], {
+             Offset[0.4]}, 
+            Offset[0.2]}, "RowsIndexed" -> {}},
+        Selectable->True]}
+     },
+     GridBoxAlignment->{
+      "Columns" -> {{Left}}, "ColumnsIndexed" -> {}, "Rows" -> {{Baseline}}, 
+       "RowsIndexed" -> {}},
+     GridBoxItemSize->{
+      "Columns" -> {{Automatic}}, "ColumnsIndexed" -> {}, "Rows" -> {{1.}}, 
+       "RowsIndexed" -> {}},
+     GridBoxSpacings->{"Columns" -> {
+         Offset[0.27999999999999997`], {
+          Offset[0.35]}, 
+         Offset[0.27999999999999997`]}, "ColumnsIndexed" -> {}, "Rows" -> {
+         Offset[0.2], {
+          Offset[0.4]}, 
+         Offset[0.2]}, "RowsIndexed" -> {}}],
+    "Piecewise",
+    DeleteWithContents->True,
+    Editable->False,
+    SelectWithContents->True,
+    Selectable->False], ")"}]}]], "Output",
+ CellChangeTimes->{
+  3.7752184392002707`*^9, 3.775219307127158*^9, 3.7752253364968567`*^9, 
+   3.775225397940998*^9, 3.7752259479292917`*^9, {3.775226215240348*^9, 
+   3.775226239824456*^9}, 3.775226518948596*^9, {3.775226830747724*^9, 
+   3.775226832685967*^9}},ExpressionUUID->"d63af507-c7ac-4442-959e-\
+fff0a3b288b7"]
+}, Open  ]],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"mode", "=", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"tmin", "\[Rule]", "0"}], ",", 
+     RowBox[{"tmax", "\[Rule]", "3"}], ",", 
+     RowBox[{"smin", "\[Rule]", "0"}], ",", 
+     RowBox[{"smax", "\[Rule]", "4"}], ",", 
+     RowBox[{"s", "\[Rule]", "1"}]}], "}"}]}], ";"}]], "Input",
+ CellChangeTimes->{{3.7752269307588053`*^9, 
+  3.7752269405841303`*^9}},ExpressionUUID->"4f099009-4ea0-4a3f-9ad2-\
+07fba2a15777"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"num", "/.", "mode"}]], "Input",
+ CellChangeTimes->{{3.775226944531711*^9, 
+  3.775226948830679*^9}},ExpressionUUID->"463fa682-26a4-4c13-ad9b-\
+2613321246bd"],
+
+Cell[BoxData["1"], "Output",
+ CellChangeTimes->{
+  3.775226949179592*^9},ExpressionUUID->"b0a92334-f802-4e9f-9a25-\
+17e1838c7fdd"]
+}, Open  ]]
+},
+WindowSize->{1600, 1176},
+WindowMargins->{{1366, Automatic}, {0, Automatic}},
+FrontEndVersion->"11.2 for Linux x86 (64-bit) (September 10, 2017)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[CellGroupData[{
+Cell[580, 22, 1258, 31, 55, "Input",ExpressionUUID->"1d48e86c-a0c4-453c-ad9d-8989e422d6f3"],
+Cell[1841, 55, 15097, 416, 542, "Output",ExpressionUUID->"e4bc0e2b-3ef0-4df2-9547-3f3e3622fcdf"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[16975, 476, 410, 10, 31, "Input",ExpressionUUID->"179891fa-bf7a-4688-ab6c-b7e55ae2a7af"],
+Cell[17388, 488, 153, 3, 35, "Output",ExpressionUUID->"e46753f8-841b-411c-af51-7e25e8280034"]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[17578, 496, 1670, 39, 55, "Input",ExpressionUUID->"c12d8c23-4527-4356-ba52-c9578febb4b5"],
+Cell[19251, 537, 36758, 974, 438, "Output",ExpressionUUID->"d63af507-c7ac-4442-959e-fff0a3b288b7"]
+}, Open  ]],
+Cell[56024, 1514, 451, 12, 31, "Input",ExpressionUUID->"4f099009-4ea0-4a3f-9ad2-07fba2a15777"],
+Cell[CellGroupData[{
+Cell[56500, 1530, 181, 4, 31, "Input",ExpressionUUID->"463fa682-26a4-4c13-ad9b-2613321246bd"],
+Cell[56684, 1536, 130, 3, 35, "Output",ExpressionUUID->"b0a92334-f802-4e9f-9a25-17e1838c7fdd"]
+}, Open  ]]
+}
+]
+*)
+
