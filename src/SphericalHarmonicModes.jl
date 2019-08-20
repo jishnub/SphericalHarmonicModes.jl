@@ -2,7 +2,7 @@ module SphericalHarmonicModes
 
 export SHModeRange,st,ts,modeindex,s_valid_range,t_valid_range,s_range,t_range
 
-abstract type SHModeRange end
+abstract type SHModeRange <: AbstractVector{Tuple{Int,Int}} end
 
 # Throw errors if values are invalid
 struct OrderError{T} <: Exception
@@ -48,10 +48,10 @@ function check_if_valid(smin,smax,tmin,tmax)
 end
 
 struct st <: SHModeRange
-	smin :: Int64
-	smax :: Int64
-	tmin :: Int64
-	tmax :: Int64
+	smin :: Int
+	smax :: Int
+	tmin :: Int
+	tmax :: Int
 
 	function st(smin,smax,tmin,tmax)
 		check_if_valid(smin,smax,tmin,tmax)
@@ -61,10 +61,10 @@ struct st <: SHModeRange
 end
 
 struct ts <: SHModeRange
-	smin :: Int64
-	smax :: Int64
-	tmin :: Int64
-	tmax :: Int64
+	smin :: Int
+	smax :: Int
+	tmin :: Int
+	tmax :: Int
 
 	function ts(smin,smax,tmin,tmax)
 		check_if_valid(smin,smax,tmin,tmax)
@@ -86,7 +86,7 @@ end
 
 (::Type{T})(s_range::AbstractUnitRange) where {T<:SHModeRange} = T(minimum(s_range),maximum(s_range))
 
-Base.eltype(::SHModeRange) = Tuple{Int64,Int64}
+Base.eltype(::SHModeRange) = Tuple{Int,Int}
 
 function neg_skip(smin,smax,tmin,tmax)
 	# This is count(t<tmin for s=smin:smax for t=-s:s), evaluated analytically
@@ -110,6 +110,8 @@ end
 num_modes(m::SHModeRange) = num_modes(m.smin,m.smax,m.tmin,m.tmax)
 Base.length(m::SHModeRange) = num_modes(m)
 Base.lastindex(m::SHModeRange) = length(m)
+
+Base.size(m::SHModeRange) = (length(m),)
 
 first_t(m::st) = m.tmin
 first_s(m::st) = first(s_valid_range(m,first_t(m)))
