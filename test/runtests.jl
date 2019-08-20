@@ -53,3 +53,13 @@ end
 		@test modeindex(m2,s,t) == modeindex2(m2,s,t)
 	end
 end
+
+@testset "last" begin
+	for i=1:100
+		m1 = ts(rand(1:5),rand(6:10))
+		m2 = st(rand(1:5),rand(6:10))
+
+		@test last(collect(m1)) == last(m1)
+		@test last(collect(m2)) == last(m2)
+	end
+end

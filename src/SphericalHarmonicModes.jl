@@ -146,6 +146,9 @@ function Base.in((s,t)::Tuple{<:Integer,<:Integer},m::SHModeRange)
 	(abs(t)<=s) && (m.smin <= s <= m.smax) && (m.tmin <= t <= m.tmax)
 end
 
+Base.last(m::st) = (maximum(s_valid_range(m,m.tmax)),m.tmax)
+Base.last(m::ts) = (m.smax,maximum(t_valid_range(m,m.tmax)))
+
 function modeindex(m::st,s::Integer,t::Integer)
 	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
 	Nskip = 0
