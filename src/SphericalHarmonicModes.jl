@@ -2,7 +2,7 @@ module SphericalHarmonicModes
 
 export SHModeRange,st,ts,modeindex,s_valid_range,t_valid_range,s_range,t_range
 
-abstract type SHModeRange <: AbstractVector{Tuple{Int,Int}} end
+abstract type SHModeRange end
 
 # Throw errors if values are invalid
 struct OrderError{T} <: Exception
@@ -111,7 +111,12 @@ num_modes(m::SHModeRange) = num_modes(m.smin,m.smax,m.tmin,m.tmax)
 Base.length(m::SHModeRange) = num_modes(m)
 Base.lastindex(m::SHModeRange) = length(m)
 
+# Size and axes behave similar to vectors
 Base.size(m::SHModeRange) = (length(m),)
+Base.size(m::SHModeRange,d::Integer) = d == 1 ? length(m) : 1
+
+Base.axes(m::SHModeRange) = (Base.OneTo(length(m)),)
+Base.axes(m::SHModeRange,d::Integer) = d == 1 ? Base.OneTo(length(m)) : Base.OneTo(1)
 
 first_t(m::st) = m.tmin
 first_s(m::st) = first(s_valid_range(m,first_t(m)))
