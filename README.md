@@ -70,13 +70,16 @@ julia> st(2,4)
 Spherical harmonic modes with s increasing faster than t
 smin = 2, smax = 4, tmin = -4, tmax = 4
 
-julia> ts(2)
-Spherical harmonic modes with t increasing faster than s
-smin = 2, smax = 2, tmin = -2, tmax = 2
-
-julia> ts(2,4)
-Spherical harmonic modes with t increasing faster than s
+julia> st(2:4)
+Spherical harmonic modes with s increasing faster than t
 smin = 2, smax = 4, tmin = -4, tmax = 4
+```
+
+ You can also choose a range of `t`s.
+```julia
+julia> st(2:4,0:2)
+Spherical harmonic modes with s increasing faster than t
+smin = 2, smax = 4, tmin = 0, tmax = 2
 ```
 
  The length of the iterator can be computed in `O(1)` time.
@@ -136,7 +139,33 @@ julia> @btime modeindex(m,(20000,20000))
 400040001
 ```
 
-Indexing is not supported at the moment.
+Indexing is not supported at the moment, but the last element can be obtained easily.
+
+```julia
+julia> m=ts(0,2,-1,2)
+Spherical harmonic modes with t increasing faster than s
+smin = 0, smax = 2, tmin = -1, tmax = 2
+
+julia> collect(m)
+8-element Array{Tuple{Int64,Int64},1}:
+ (0, 0) 
+ (1, -1)
+ (1, 0) 
+ (1, 1) 
+ (2, -1)
+ (2, 0) 
+ (2, 1) 
+ (2, 2) 
+
+julia> last(m)
+(2, 2)
+
+julia> m=ts(0,20000);
+
+julia> @btime last(m)
+  16.645 ns (1 allocation: 32 bytes)
+(20000, 20000)
+```
 
 ## License
 

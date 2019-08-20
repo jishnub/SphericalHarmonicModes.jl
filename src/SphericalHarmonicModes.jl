@@ -84,6 +84,8 @@ end
 (::Type{T})(s_range::AbstractUnitRange,t::Integer) where {T<:SHModeRange} = T(minimum(s_range),maximum(s_range),t,t)
 (::Type{T})(s::Integer,t_range::AbstractUnitRange) where {T<:SHModeRange} = T(s,s,minimum(t_range),maximum(t_range))
 
+(::Type{T})(s_range::AbstractUnitRange) where {T<:SHModeRange} = T(minimum(s_range),maximum(s_range))
+
 Base.eltype(::SHModeRange) = Tuple{Int64,Int64}
 
 function neg_skip(smin,smax,tmin,tmax)
