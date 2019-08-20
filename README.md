@@ -2,7 +2,9 @@
 
 [![Build Status](https://travis-ci.com/jishnub/SphericalHarmonicModes.jl.svg?branch=master)](https://travis-ci.com/jishnub/SphericalHarmonicModes.jl)
 
-An iterator to loop over spherical harmonic modes, typically denoted by `(l,m)`. We use the notation `(s,t)` in this package.
+This package provides two iterators that are relevant in the context of spherical harmonics. 
+1. An iterator to loop over spherical harmonic modes, typically denoted by `(l,m)`. We use the notation `(s,t)` in this package.
+2. An iterator to loop over pairs of spherical harmonic degrees `s` and `s′`, where `|s-Δs|<=s′<=s+Δs`. The iterator generates pairs of `(s′,s)` for a specified range of `s` and a particular `Δs`. 
 
 ## Getting Started
 
@@ -15,9 +17,9 @@ julia> using SphericalHarmonicModes
 ```
 ## Usage
 
-### Creating an iterator
+### Creating a spherical harmonic iterator
 
-There are two different orderings possible to iterate over the modes, with either `s` or `t` increasing faster than the other. They are denoted by `st` and `ts`, where --- going by the Julia convention of column-major arrays --- the first index increases faster than the second. Irrespective of which ordering is chosen, the modes are always returned as `(s,t)`.
+There are two different orderings possible to iterate over spherical harmonic modes, with either `s` or `t` increasing faster than the other. They are denoted by `st` and `ts`, where --- going by the Julia convention of column-major arrays --- the first index increases faster than the second. Irrespective of which ordering is chosen, the modes are always returned as `(s,t)`.
 
 To create an iterator with `t` increasing faster than `s`: 
 
@@ -82,7 +84,30 @@ Spherical harmonic modes with s increasing faster than t
 smin = 2, smax = 4, tmin = 0, tmax = 2
 ```
 
- The length of the iterator can be computed in `O(1)` time.
+### Creating an (s',s) iterator
+
+This iterator can be created as 
+```julia
+julia> m=s′s(0:1,2)
+Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs
+0 ⩽ s ⩽ 1, Δs = 2
+
+julia> collect(m)
+7-element Array{Tuple{Int64,Int64},1}:
+ (0, 0)
+ (1, 0)
+ (2, 0)
+ (0, 1)
+ (1, 1)
+ (2, 1)
+ (3, 1)
+```
+
+Note that the minimum value of `s′` is `0`.
+
+### Using the iterators
+
+ The length of an iterator can be computed in `O(1)` time.
  
 ```julia
 julia> m=st(0,20000000,-1000000,2000)

@@ -1,8 +1,13 @@
 module SphericalHarmonicModes
 
-export SHModeRange,st,ts,modeindex,s_valid_range,t_valid_range,s_range,t_range
+export SHModeRange,st,ts,modeindex,s_valid_range,t_valid_range,s_range,t_range,
+s′s,s′_range
 
-abstract type SHModeRange end
+abstract type ModeRange end
+abstract type SHModeRange <: ModeRange end
+abstract type ModeProduct <: ModeRange end
+
+Base.eltype(::ModeRange) = Tuple{Int,Int}
 
 # Throw errors if values are invalid
 struct OrderError{T} <: Exception
@@ -31,8 +36,7 @@ Base.showerror(io::IO, e::OrderError) = print(io,e.var,"min = ",e.low,
 Base.showerror(io::IO, e::ModeMissingError) = print(io,"Mode with (s=",e.s,",t=",e.t,")",
 			" is not included in the range given by s=",e.m.smin:e.m.smax,", t=",e.m.tmin:e.m.tmax)
 
-
-function check_if_valid(smin,smax,tmin,tmax)
+function check_if_st_valid(smin,smax,tmin,tmax)
 	if tmin > tmax 
 		throw(OrderError("t",tmin,tmax))
 	end
@@ -47,6 +51,12 @@ function check_if_valid(smin,smax,tmin,tmax)
 	end
 end
 
+function check_if_st_valid(s_range::AbstractUnitRange{Int})
+	if minimum(s_range) < 0
+		throw(NegativeDegreeError())
+	end
+end
+
 struct st <: SHModeRange
 	smin :: Int
 	smax :: Int
@@ -54,7 +64,7 @@ struct st <: SHModeRange
 	tmax :: Int
 
 	function st(smin,smax,tmin,tmax)
-		check_if_valid(smin,smax,tmin,tmax)
+		check_if_st_valid(smin,smax,tmin,tmax)
 		smin = max(smin,max(tmin,-tmax))
 		new(smin,smax,tmin,tmax)
 	end
@@ -67,10 +77,15 @@ struct ts <: SHModeRange
 	tmax :: Int
 
 	function ts(smin,smax,tmin,tmax)
-		check_if_valid(smin,smax,tmin,tmax)
+		check_if_st_valid(smin,smax,tmin,tmax)
 		smin = max(smin,max(tmin,-tmax))
 		new(smin,smax,tmin,tmax)
 	end
+end
+
+struct s′s <: ModeProduct
+	s_range :: UnitRange{Int}
+	Δs :: Int
 end
 
 # Constructors. Both ts and st are constructed identically, 
@@ -86,7 +101,7 @@ end
 
 (::Type{T})(s_range::AbstractUnitRange) where {T<:SHModeRange} = T(minimum(s_range),maximum(s_range))
 
-Base.eltype(::SHModeRange) = Tuple{Int,Int}
+# s′s(s_range::UnitRange,m::SHModeRange) = s′s(s_range,m.smax)
 
 function neg_skip(smin,smax,tmin,tmax)
 	# This is count(t<tmin for s=smin:smax for t=-s:s), evaluated analytically
@@ -109,14 +124,34 @@ end
 
 num_modes(m::SHModeRange) = num_modes(m.smin,m.smax,m.tmin,m.tmax)
 Base.length(m::SHModeRange) = num_modes(m)
-Base.lastindex(m::SHModeRange) = length(m)
+
+function Base.length(modes::s′s)
+	
+	smin,smax = extrema(modes.s_range)
+	Δs = modes.Δs
+	
+	N = 0
+	
+	if smin < Δs
+		N += -div((-1 + smin - min(smax, Δs -1 ))*
+			(2 + smin + 2Δs + min(smax, Δs -1 )),2)
+	end
+
+	if smax >= Δs
+		N += (1 + smax - max(Δs,smin)) * (1 + 2Δs)
+	end
+
+	return N
+end
+
+Base.lastindex(m::ModeRange) = length(m)
 
 # Size and axes behave similar to vectors
-Base.size(m::SHModeRange) = (length(m),)
-Base.size(m::SHModeRange,d::Integer) = d == 1 ? length(m) : 1
+Base.size(m::ModeRange) = (length(m),)
+Base.size(m::ModeRange,d::Integer) = d == 1 ? length(m) : 1
 
-Base.axes(m::SHModeRange) = (Base.OneTo(length(m)),)
-Base.axes(m::SHModeRange,d::Integer) = d == 1 ? Base.OneTo(length(m)) : Base.OneTo(1)
+Base.axes(m::ModeRange) = (Base.OneTo(length(m)),)
+Base.axes(m::ModeRange,d::Integer) = d == 1 ? Base.OneTo(length(m)) : Base.OneTo(1)
 
 first_t(m::st) = m.tmin
 first_s(m::st) = first(s_valid_range(m,first_t(m)))
@@ -151,12 +186,44 @@ function Base.iterate(m::ts, state=((first_s(m),first_t(m)), 1))
 	return (s,t), ((next_s,next_t), count + 1)
 end
 
+function Base.iterate(m::s′s,state=((first(s′_range(m,first(m.s_range))),first(m.s_range)), 1))
+
+	(s′,s),count = state
+	if count > length(m)
+		return nothing
+	end
+
+	s′_range_s = s′_range(m,s)
+
+	s′ind = searchsortedfirst(s′_range_s,s′)
+	if s′ind==length(s′_range_s)
+		next_s = s + 1
+		next_s′ = first(s′_range(m,next_s))
+	else
+		next_s = s
+		next_s′ = s′ + 1
+	end
+
+	return (s′,s),((next_s′,next_s),count+1)
+end
+
 function Base.in((s,t)::Tuple{<:Integer,<:Integer},m::SHModeRange)
 	(abs(t)<=s) && (m.smin <= s <= m.smax) && (m.tmin <= t <= m.tmax)
 end
 
+function Base.in((s′,s)::Tuple{<:Integer,<:Integer},m::s′s)
+	(s ∉ m.s_range) && return false
+	(s′ ∉ s′_range(m,s)) && return false
+	return true
+end
+
+s′_range(Δs::Integer,s::Integer) = max(s-Δs,0):s+Δs
+s′_range(modes::s′s,s::Integer) = s′_range(modes.Δs,s)
+
 Base.last(m::st) = (maximum(s_valid_range(m,m.tmax)),m.tmax)
 Base.last(m::ts) = (m.smax,maximum(t_valid_range(m,m.tmax)))
+
+Base.last(m::s′s) = (maximum(s′_range(m,maximum(m.s_range))), maximum(m.s_range))
 
 function modeindex(m::st,s::Integer,t::Integer)
 	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
@@ -343,7 +410,37 @@ function modeindex(m::ts,s::Integer,t::Integer)
 	Nskip + searchsortedfirst(t_valid_range(m,s),t)
 end
 
-modeindex(m::SHModeRange,(s,t)::Tuple{<:Integer,<:Integer}) = modeindex(m,s,t)
+function modeindex(m::s′s,s′::Integer,s::Integer)
+	
+	@assert((s′,s) in m,"Mode $((s′,s)) is not present in $m")
+
+	smin,smax = extrema(m.s_range)
+	Δs = m.Δs
+
+	# Nskip = sum(length(s′range(s,m)) for s in smin:s-1)
+	# Exact expressions evaluated in Mathematica
+	if s==smin
+		Nskip = 0
+	elseif s==smin+1 && smin<=Δs
+		Nskip = 1 + smin + Δs
+	elseif s==smin+1 && smin>Δs
+		Nskip = 1 + 2Δs
+	elseif s - smin > 1 && smin - Δs > 0 && s - Δs >= 1
+		Nskip = (s - smin)*(1 + 2Δs)
+	elseif s - smin > 1 && s - Δs < 1 && smin - Δs < 0
+		Nskip = div( (s - smin)*(1 + s + smin + 2Δs),2)
+	elseif s - smin > 1 && s - Δs == 1 && smin - Δs < 0
+		Nskip = -div((-1 + smin - Δs)*(2 + smin + 3Δs),2)
+	elseif smin - Δs == 0 && s - smin > 1
+		Nskip = s - Δs + 2*(s - smin)*Δs
+	else
+		Nskip = div(2s - smin - smin^2 - Δs + 4s*Δs - 2smin*Δs - Δs^2,2)
+	end
+
+	Nskip + searchsortedfirst(s′_range(m,s),s′)
+end
+
+modeindex(m::ModeRange,T::Tuple{<:Integer,<:Integer}) = modeindex(m,T...)
 
 function s_valid_range(m::SHModeRange,t::Integer)
 	max(abs(t),m.smin):m.smax
@@ -356,8 +453,14 @@ end
 s_range(m::SHModeRange) = m.smin:m.smax
 t_range(m::SHModeRange) = m.tmin:m.tmax
 
+s_range(m::s′s) = m.s_range
+
 function Base.show(io::IO, m::SHModeRange)
 	print(io,"(s=",m.smin:m.smax,",t=",m.tmin:m.tmax,")")
+end
+
+function Base.show(io::IO, m::s′s)
+	print(io,"(s=",m.s_range,",Δs=",m.Δs,")")
 end
 
 function Base.show(io::IO, ::MIME"text/plain", m::st)
@@ -370,6 +473,11 @@ function Base.show(io::IO, ::MIME"text/plain", m::ts)
 	println("Spherical harmonic modes with t increasing faster than s")
 	print(io,"smin = ",m.smin,", smax = ",m.smax,
 		", tmin = ",m.tmin,", tmax = ",m.tmax)
+end
+
+function Base.show(io::IO, ::MIME"text/plain", m::s′s)
+	println("Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs")
+	print(io,minimum(m.s_range)," ⩽ s ⩽ ",maximum(m.s_range),", Δs = ",m.Δs)
 end
 
 end # module
