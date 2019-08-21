@@ -14,6 +14,38 @@ using Test,SphericalHarmonicModes
 	end
 end
 
+@testset "constructors" begin
+
+	@testset "st" begin
+		@test st(0:3,-1:1) == st(0,3,-1,1)
+		@test st(0:3,1) == st(0,3,1,1)
+		@test st(2,1:2) == st(2,2,1,2)
+		@test st(0:3) == st(0,3,-3,3)
+		@test st(2) == st(2,2,-2,2)
+	end
+
+	@testset "ts" begin
+		@test ts(0:3,-1:1) == ts(0,3,-1,1)
+		@test ts(0:3,1) == ts(0,3,1,1)
+		@test ts(2,1:2) == ts(2,2,1,2)
+		@test ts(0:3) == ts(0,3,-3,3)
+		@test ts(2) == ts(2,2,-2,2)
+	end
+
+	@testset "st and ts produce the same modes" begin
+		s_range = rand(0:3):rand(4:6)
+		t_range = rand(-maximum(s_range):0):rand(1:maximum(s_range))
+		@test sort(collect(ts(s_range,t_range))) == sort(collect(st(s_range,t_range)))
+	end
+
+	@testset "s′s " begin
+		Δs_max = rand(1:3)
+		s_range = rand(1:3):rand(4:10)
+		@test s′s(s_range,Δs_max) == s′s(s_range,st(0:Δs_max,0))
+		@test s′s(s_range,Δs_max) == s′s(s_range,ts(0:Δs_max,0))
+	end
+end
+
 @testset "modeindex" begin
 
 	function modeindex2(m::ts,s,t)
@@ -73,3 +105,4 @@ end
 		@test last(collect(m3)) == last(m3)
 	end
 end
+

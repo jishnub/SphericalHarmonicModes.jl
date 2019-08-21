@@ -101,7 +101,7 @@ end
 
 (::Type{T})(s_range::AbstractUnitRange) where {T<:SHModeRange} = T(minimum(s_range),maximum(s_range))
 
-# s′s(s_range::UnitRange,m::SHModeRange) = s′s(s_range,m.smax)
+s′s(s_range::UnitRange,m::SHModeRange) = s′s(s_range,m.smax)
 
 function neg_skip(smin,smax,tmin,tmax)
 	# This is count(t<tmin for s=smin:smax for t=-s:s), evaluated analytically
