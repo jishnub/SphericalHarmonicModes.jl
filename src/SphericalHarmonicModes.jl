@@ -85,7 +85,7 @@ end
 
 struct s′s <: ModeProduct
 	s_range :: UnitRange{Int}
-	Δs :: Int
+	Δs_max :: Int
 end
 
 # Constructors. Both ts and st are constructed identically, 
@@ -128,17 +128,17 @@ Base.length(m::SHModeRange) = num_modes(m)
 function Base.length(modes::s′s)
 	
 	smin,smax = extrema(modes.s_range)
-	Δs = modes.Δs
+	Δs_max = modes.Δs_max
 	
 	N = 0
 	
-	if smin < Δs
-		N += -div((-1 + smin - min(smax, Δs -1 ))*
-			(2 + smin + 2Δs + min(smax, Δs -1 )),2)
+	if smin < Δs_max
+		N += -div((-1 + smin - min(smax, Δs_max -1 ))*
+			(2 + smin + 2Δs_max + min(smax, Δs_max -1 )),2)
 	end
 
-	if smax >= Δs
-		N += (1 + smax - max(Δs,smin)) * (1 + 2Δs)
+	if smax >= Δs_max
+		N += (1 + smax - max(Δs_max,smin)) * (1 + 2Δs_max)
 	end
 
 	return N
@@ -217,8 +217,8 @@ function Base.in((s′,s)::Tuple{<:Integer,<:Integer},m::s′s)
 	return true
 end
 
-s′_range(Δs::Integer,s::Integer) = max(s-Δs,0):s+Δs
-s′_range(modes::s′s,s::Integer) = s′_range(modes.Δs,s)
+s′_range(Δs_max::Integer,s::Integer) = max(s-Δs_max,0):s+Δs_max
+s′_range(modes::s′s,s::Integer) = s′_range(modes.Δs_max,s)
 
 Base.last(m::st) = (maximum(s_valid_range(m,m.tmax)),m.tmax)
 Base.last(m::ts) = (m.smax,maximum(t_valid_range(m,m.tmax)))
@@ -415,26 +415,26 @@ function modeindex(m::s′s,s′::Integer,s::Integer)
 	@assert((s′,s) in m,"Mode $((s′,s)) is not present in $m")
 
 	smin,smax = extrema(m.s_range)
-	Δs = m.Δs
+	Δs_max = m.Δs_max
 
 	# Nskip = sum(length(s′range(s,m)) for s in smin:s-1)
 	# Exact expressions evaluated in Mathematica
 	if s==smin
 		Nskip = 0
-	elseif s==smin+1 && smin<=Δs
-		Nskip = 1 + smin + Δs
-	elseif s==smin+1 && smin>Δs
-		Nskip = 1 + 2Δs
-	elseif s - smin > 1 && smin - Δs > 0 && s - Δs >= 1
-		Nskip = (s - smin)*(1 + 2Δs)
-	elseif s - smin > 1 && s - Δs < 1 && smin - Δs < 0
-		Nskip = div( (s - smin)*(1 + s + smin + 2Δs),2)
-	elseif s - smin > 1 && s - Δs == 1 && smin - Δs < 0
-		Nskip = -div((-1 + smin - Δs)*(2 + smin + 3Δs),2)
-	elseif smin - Δs == 0 && s - smin > 1
-		Nskip = s - Δs + 2*(s - smin)*Δs
+	elseif s==smin+1 && smin<=Δs_max
+		Nskip = 1 + smin + Δs_max
+	elseif s==smin+1 && smin>Δs_max
+		Nskip = 1 + 2Δs_max
+	elseif s - smin > 1 && smin - Δs_max > 0 && s - Δs_max >= 1
+		Nskip = (s - smin)*(1 + 2Δs_max)
+	elseif s - smin > 1 && s - Δs_max < 1 && smin - Δs_max < 0
+		Nskip = div( (s - smin)*(1 + s + smin + 2Δs_max),2)
+	elseif s - smin > 1 && s - Δs_max == 1 && smin - Δs_max < 0
+		Nskip = -div((-1 + smin - Δs_max)*(2 + smin + 3Δs_max),2)
+	elseif smin - Δs_max == 0 && s - smin > 1
+		Nskip = s - Δs_max + 2*(s - smin)*Δs_max
 	else
-		Nskip = div(2s - smin - smin^2 - Δs + 4s*Δs - 2smin*Δs - Δs^2,2)
+		Nskip = div(2s - smin - smin^2 - Δs_max + 4s*Δs_max - 2smin*Δs_max - Δs_max^2,2)
 	end
 
 	Nskip + searchsortedfirst(s′_range(m,s),s′)
@@ -460,7 +460,7 @@ function Base.show(io::IO, m::SHModeRange)
 end
 
 function Base.show(io::IO, m::s′s)
-	print(io,"(s=",m.s_range,",Δs=",m.Δs,")")
+	print(io,"(s=",m.s_range,",Δs_max=",m.Δs_max,")")
 end
 
 function Base.show(io::IO, ::MIME"text/plain", m::st)
@@ -476,8 +476,9 @@ function Base.show(io::IO, ::MIME"text/plain", m::ts)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", m::s′s)
-	println("Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs")
-	print(io,minimum(m.s_range)," ⩽ s ⩽ ",maximum(m.s_range),", Δs = ",m.Δs)
+	println("Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs "*
+		"and 0 ⩽ Δs ⩽ Δs_max")
+	print(io,minimum(m.s_range)," ⩽ s ⩽ ",maximum(m.s_range),", Δs_max = ",m.Δs_max)
 end
 
 end # module

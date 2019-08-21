@@ -4,7 +4,7 @@
 
 This package provides two iterators that are relevant in the context of spherical harmonics. 
 1. An iterator to loop over spherical harmonic modes, typically denoted by `(l,m)`. We use the notation `(s,t)` in this package.
-2. An iterator to loop over pairs of spherical harmonic degrees `s` and `s′`, where `|s-Δs|<=s′<=s+Δs`. The iterator generates pairs of `(s′,s)` for a specified range of `s` and a particular `Δs`. 
+2. An iterator to loop over pairs of spherical harmonic degrees `s` and `s′`, where `|s-Δs|<=s′<=s+Δs`. The iterator generates pairs of `(s′,s)` for a specified range of `s` and all `Δs` that satisfy `0 ⩽ Δs ⩽ Δs_max` for a specified `Δs_max`. 
 
 ## Getting Started
 
@@ -89,8 +89,8 @@ smin = 2, smax = 4, tmin = 0, tmax = 2
 This iterator can be created as 
 ```julia
 julia> m=s′s(0:1,2)
-Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs
-0 ⩽ s ⩽ 1, Δs = 2
+Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs and 0 ⩽ Δs ⩽ Δs_max
+0 ⩽ s ⩽ 1, Δs_max = 2
 
 julia> collect(m)
 7-element Array{Tuple{Int64,Int64},1}:
@@ -102,8 +102,6 @@ julia> collect(m)
  (2, 1)
  (3, 1)
 ```
-
-Note that the minimum value of `s′` is `0`.
 
 ### Using the iterators
 
