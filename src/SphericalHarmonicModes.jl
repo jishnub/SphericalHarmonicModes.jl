@@ -284,6 +284,8 @@ end
 modeindex(m::st,s::AbstractUnitRange{<:Integer},t::Integer) = 
 	modeindex(m,first(s),t):modeindex(m,last(s),t)
 
+modeindex(m::st,::Colon,t::Integer) = modeindex(m,s_valid_range(m,t),t)
+
 function modeindex(m::ts,s::Integer,t::Integer)
 	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
 	Nskip = 0
@@ -416,6 +418,8 @@ end
 modeindex(m::ts,s::Integer,t::AbstractUnitRange{<:Integer}) = 
 	modeindex(m,s,first(t)):modeindex(m,s,last(t))
 
+modeindex(m::ts,s::Integer,::Colon) = modeindex(m,s,t_valid_range(m,s))
+
 function modeindex(m::s′s,s′::Integer,s::Integer)
 	
 	@assert((s′,s) in m,"Mode $((s′,s)) is not present in $m")
@@ -448,6 +452,8 @@ end
 
 modeindex(m::s′s,s′::AbstractUnitRange{<:Integer},s::Integer) =
 	modeindex(m,first(s′),s):modeindex(m,last(s′),s)
+
+modeindex(m::s′s,::Colon,s::Integer) = modeindex(m,s′_range(m,s),s)
 
 modeindex(m::ModeRange,T::Tuple) = modeindex(m,T...)
 
