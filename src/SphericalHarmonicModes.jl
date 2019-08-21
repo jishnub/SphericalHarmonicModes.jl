@@ -281,6 +281,9 @@ function modeindex(m::st,s::Integer,t::Integer)
 	Nskip + searchsortedfirst(s_valid_range(m,t),s)
 end
 
+modeindex(m::st,s::AbstractUnitRange{<:Integer},t::Integer) = 
+	modeindex(m,first(s),t):modeindex(m,last(s),t)
+
 function modeindex(m::ts,s::Integer,t::Integer)
 	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
 	Nskip = 0
@@ -410,6 +413,9 @@ function modeindex(m::ts,s::Integer,t::Integer)
 	Nskip + searchsortedfirst(t_valid_range(m,s),t)
 end
 
+modeindex(m::ts,s::Integer,t::AbstractUnitRange{<:Integer}) = 
+	modeindex(m,s,first(t)):modeindex(m,s,last(t))
+
 function modeindex(m::s′s,s′::Integer,s::Integer)
 	
 	@assert((s′,s) in m,"Mode $((s′,s)) is not present in $m")
@@ -440,7 +446,10 @@ function modeindex(m::s′s,s′::Integer,s::Integer)
 	Nskip + searchsortedfirst(s′_range(m,s),s′)
 end
 
-modeindex(m::ModeRange,T::Tuple{<:Integer,<:Integer}) = modeindex(m,T...)
+modeindex(m::s′s,s′::AbstractUnitRange{<:Integer},s::Integer) =
+	modeindex(m,first(s′),s):modeindex(m,last(s′),s)
+
+modeindex(m::ModeRange,T::Tuple) = modeindex(m,T...)
 
 function s_valid_range(m::SHModeRange,t::Integer)
 	max(abs(t),m.smin):m.smax

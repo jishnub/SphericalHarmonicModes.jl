@@ -48,7 +48,7 @@ end
 
 @testset "modeindex" begin
 
-	function modeindex2(m::ts,s,t)
+	function modeindex2(m::ts,s::Integer,t::Integer)
 		N_skip = 0
 		for si in m.smin:s-1
 			N_skip += length(t_valid_range(m,si))
@@ -57,7 +57,7 @@ end
 		N_skip + searchsortedfirst(t_valid_range(m,s),t)
 	end
 
-	function modeindex2(m::st,s,t)
+	function modeindex2(m::st,s::Integer,t::Integer)
 		N_skip = 0
 		for ti in m.tmin:t-1
 			N_skip += length(s_valid_range(m,ti))
@@ -66,7 +66,7 @@ end
 		N_skip + searchsortedfirst(s_valid_range(m,t),s)
 	end
 
-	function modeindex2(m::s′s,s′,s)
+	function modeindex2(m::s′s,s′::Integer,s::Integer)
 		N_skip = 0
 		for si in minimum(m.s_range):s-1
 			N_skip += length(s′_range(m,si))
@@ -75,7 +75,7 @@ end
 		N_skip + searchsortedfirst(s′_range(m,s),s′)
 	end
 
-	modeindex2(m::SHModeRange,(s,t)::Tuple{<:Integer,<:Integer}) = modeindex(m,s,t)
+	modeindex2(m::SHModeRange,(s,t)::Tuple) = modeindex(m,s,t)
 
 	m1 = st(rand(0:3),rand(6:10))
 	m2 = ts(rand(0:3),rand(6:10))
@@ -92,6 +92,19 @@ end
 	for (s′,s) in m3
 		@test modeindex(m3,s′,s) == modeindex2(m3,s′,s)
 	end
+
+	m1c = collect(m1)
+	m2c = collect(m2)
+	m3c = collect(m3)
+
+	t = rand(t_range(m1)); s1,s2 = rand(s_valid_range(m1,t),2); s1,s2=minmax(s1,s2)
+	@test modeindex(m1,s1:s2,t) == findfirst(isequal((s1,t)),m1c):findfirst(isequal((s2,t)),m1c)
+
+	s = rand(s_range(m2)); t1,t2 = rand(t_valid_range(m2,s),2); t1,t2 = minmax(t1,t2)
+	@test modeindex(m2,s,t1:t2) == findfirst(isequal((s,t1)),m2c):findfirst(isequal((s,t2)),m2c)
+
+	s = rand(s_range(m3)); s′1,s′2 = rand(s′_range(m3,s),2); s′1,s′2 = minmax(s′1,s′2)
+	@test modeindex(m3,s′1:s′2,s) == findfirst(isequal((s′1,s)),m3c):findfirst(isequal((s′2,s)),m3c)
 end
 
 @testset "last" begin
