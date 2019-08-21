@@ -281,8 +281,10 @@ function modeindex(m::st,s::Integer,t::Integer)
 	Nskip + searchsortedfirst(s_valid_range(m,t),s)
 end
 
-modeindex(m::st,s::AbstractUnitRange{<:Integer},t::Integer) = 
-	modeindex(m,first(s),t):modeindex(m,last(s),t)
+function modeindex(m::st,s::AbstractUnitRange{<:Integer},t::Integer) 
+	start = modeindex(m,first(s),t)
+	start:start + length(s) - 1
+end
 
 modeindex(m::st,::Colon,t::Integer) = modeindex(m,s_valid_range(m,t),t)
 
@@ -415,8 +417,10 @@ function modeindex(m::ts,s::Integer,t::Integer)
 	Nskip + searchsortedfirst(t_valid_range(m,s),t)
 end
 
-modeindex(m::ts,s::Integer,t::AbstractUnitRange{<:Integer}) = 
-	modeindex(m,s,first(t)):modeindex(m,s,last(t))
+function modeindex(m::ts,s::Integer,t::AbstractUnitRange{<:Integer})
+	start = modeindex(m,s,first(t))
+	start:start + length(t) - 1
+end
 
 modeindex(m::ts,s::Integer,::Colon) = modeindex(m,s,t_valid_range(m,s))
 
@@ -450,8 +454,10 @@ function modeindex(m::s′s,s′::Integer,s::Integer)
 	Nskip + searchsortedfirst(s′_range(m,s),s′)
 end
 
-modeindex(m::s′s,s′::AbstractUnitRange{<:Integer},s::Integer) =
-	modeindex(m,first(s′),s):modeindex(m,last(s′),s)
+function modeindex(m::s′s,s′::AbstractUnitRange{<:Integer},s::Integer)
+	start = modeindex(m,first(s′),s)
+	start:start + length(s′) - 1
+end
 
 modeindex(m::s′s,::Colon,s::Integer) = modeindex(m,s′_range(m,s),s)
 
