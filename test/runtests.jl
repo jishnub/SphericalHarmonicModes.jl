@@ -176,22 +176,34 @@ end
 		end
 	end
 
-	# @testset "s′s" begin
-	# 	for smin=0:3,smax=smin:3,Δs_max=0:3,s′min=0:3,s′max=s′min:3
-	# 		m3 = s′s(smin,smax,Δs_max,s′min,s′max)
-	# 		for (s′,s) in m3
-	# 			@test modeindex(m3,s′,s) == modeindex2(m3,s′,s)
-	# 		end
-	# 		m3c = collect(m3)
-	# 		for s = rand(s_range(m3)), s′1 in s′_valid_range(m3,s), 
-	# 			s′2 in s′_valid_range(m3,s)
+	@testset "s′s" begin
+		for smin=0:5,smax=smin:5,Δs_max=0:5,s′min=0:5,s′max=s′min:5
+			m3 = s′s(smin,smax,Δs_max,s′min,s′max)
+			for (s′,s) in m3
+				@test begin 
+					res = modeindex(m3,s′,s) == modeindex2(m3,s′,s)
+					if !res
+						println(m3)
+					end
+					res
+				end
+			end
+			m3c = collect(m3)
+			for s in s_range(m3), s′1 in s′_valid_range(m3,s), 
+				s′2 in s′_valid_range(m3,s)
 
-	# 			s′min,s′max = minmax(s′1,s′2)
-	# 			@test modeindex(m3,s′min:s′max,s) == 
-	# 			findfirst(isequal((s′min,s)),m3c):findfirst(isequal((s′max,s)),m3c)
-	# 		end
-	# 	end
-	# end
+				s′min,s′max = minmax(s′1,s′2)
+				@test begin 
+					res = modeindex(m3,s′min:s′max,s) == 
+					findfirst(isequal((s′min,s)),m3c):findfirst(isequal((s′max,s)),m3c)
+					if !res
+						println(m3)
+					end
+					res
+				end
+			end
+		end
+	end
 end
 
 @testset "last" begin

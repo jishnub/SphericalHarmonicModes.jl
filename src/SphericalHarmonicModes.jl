@@ -136,6 +136,10 @@ end
 function s′s(smin::Integer,smax::Integer,Δs_max::Integer,
 	s′min::Integer=max(smin-Δs_max,0),s′max::Integer=smax+Δs_max)
 
+	smin = max(smin,s′min-Δs_max,0)
+	s′min = max(smin-Δs_max,0,s′min,smin)
+	s′max = max(min(max(smax+Δs_max,0),s′max),s′min)
+
 	B1 = s′min == max(smin-Δs_max,0)
 	B2 = s′max == smax+Δs_max
 
@@ -179,23 +183,23 @@ end
 # Number of modes of an st or a ts iterator
 # Number of modes does not depend on ordering
 
-function neg_skip(smin,smax,tmin,tmax)
-	# This is count(t<tmin for s=smin:smax for t=-s:s), evaluated analytically
-	smin_part = max(smin,abs(tmin))
-	div((1 + smax - smin_part)*(smax + 2tmin + smin_part),2) + 
-	(tmin>smin ? tmin^2-smin^2 : 0)
-end
+# function neg_skip(smin,smax,tmin,tmax)
+# 	# This is count(t<tmin for s=smin:smax for t=-s:s), evaluated analytically
+# 	smin_part = max(smin,abs(tmin))
+# 	div((1 + smax - smin_part)*(smax + 2tmin + smin_part),2) + 
+# 	(tmin>smin ? tmin^2-smin^2 : 0)
+# end
 
-function pos_skip(smin,smax,tmin,tmax)
-	# This is count(t>tmax for s=smin:smax for t=-s:s), evaluated analytically
-	smin_part = max(smin,abs(tmax))
-	div((1 + smax - smin_part)*(smax - 2tmax + smin_part),2) + 
-	(tmax < -smin ? tmax^2-smin^2 : 0 )
-end
+# function pos_skip(smin,smax,tmin,tmax)
+# 	# This is count(t>tmax for s=smin:smax for t=-s:s), evaluated analytically
+# 	smin_part = max(smin,abs(tmax))
+# 	div((1 + smax - smin_part)*(smax - 2tmax + smin_part),2) + 
+# 	(tmax < -smin ? tmax^2-smin^2 : 0 )
+# end
 
-function num_modes(smin,smax,tmin,tmax)
-	(smax+1)^2-smin^2 - neg_skip(smin,smax,tmin,tmax) - pos_skip(smin,smax,tmin,tmax)
-end
+# function num_modes(smin,smax,tmin,tmax)
+# 	(smax+1)^2-smin^2 - neg_skip(smin,smax,tmin,tmax) - pos_skip(smin,smax,tmin,tmax)
+# end
 
 function Base.length(m::st)
 
@@ -257,11 +261,11 @@ function Base.length(m::ts)
 	return N
 end
 
-function length2(m::SHModeRange)
+# function length2(m::SHModeRange)
 
-	(m.smax+1)^2-m.smin^2 - neg_skip(m.smin,m.smax,m.tmin,m.tmax) - 
-		pos_skip(m.smin,m.smax,m.tmin,m.tmax)
-end
+# 	(m.smax+1)^2-m.smin^2 - neg_skip(m.smin,m.smax,m.tmin,m.tmax) - 
+# 		pos_skip(m.smin,m.smax,m.tmin,m.tmax)
+# end
 
 function Base.length(m::s′s)
 
@@ -468,6 +472,30 @@ function modeindex(m::ts,s::Integer,t::AbstractUnitRange{<:Integer})
 end
 
 modeindex(m::ts,s::Integer,::Colon) = modeindex(m,s,t_valid_range(m,s))
+
+function modeindex(m::s′s,s′::Integer,s::Integer)
+	((s′,s) ∉ m) && throw(ModeMissingError(s′,s,m))
+	Nskip = 0
+
+	smin,smax,spmin,spmax = m.smin,m.smax,m.s′min,m.s′max
+	dsmax = m.Δs_max
+
+	if min(s - 1, spmax - dsmax) >= max(smin, spmin + dsmax)
+		Nskip += (1 + 2*dsmax)*(1 - max(smin, dsmax + spmin) + min(-1 + s, -dsmax + spmax))
+	end
+	if min(s - 1, spmax + dsmax) >= max(smin, spmin + dsmax, spmax - dsmax + 1)
+		Nskip += div((-1 + max(smin, 1 - dsmax + spmax, dsmax + spmin) - min(-1 + s, dsmax + spmax))*(-2*(1 + dsmax + spmax) + max(smin, 1 - dsmax + spmax, dsmax + spmin) + min(-1 + s, dsmax + spmax)),2)
+	end
+	if min(s - 1, spmin + dsmax - 1, spmax - dsmax) >= max(smin, spmin - dsmax)
+		Nskip += div(-((-1 + max(smin, -dsmax + spmin) - min(-1 + s, -dsmax + spmax, -1 + dsmax + spmin))*(2 + 2*dsmax - 2*spmin + max(smin, -dsmax + spmin) + min(-1 + s, -dsmax + spmax, -1 + dsmax + spmin))),2)
+	end
+	if min(s - 1, spmin + dsmax - 1) >= max(smin, spmax - dsmax + 1)
+		Nskip += (1 + spmax - spmin)*(1 - max(smin, 1 - dsmax + spmax) + min(-1 + s, -1 + dsmax + spmin))
+	end
+
+	Nskip + searchsortedfirst(s′_valid_range(m,s),s′)
+
+end
 
 function modeindex(m::s′s{true,true},s′::Integer,s::Integer)
 	
