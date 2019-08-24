@@ -159,22 +159,22 @@ end
 		end
 	end
 
-	# @testset "ts" begin
-	# 	for smin=0:3,smax=smin:3,tmin=-smax:smax,tmax=tmin:smax
-	# 		m2 = ts(smin,smax,tmin,tmax)
-	# 		for (s,t) in m2
-	# 			@test modeindex(m2,s,t) == modeindex2(m2,s,t)
-	# 		end
-	# 		m2c = collect(m2)
-	# 		for s in s_range(m2), t1 in  t_valid_range(m2,s), 
-	# 				t2 in t_valid_range(m2,s)
+	@testset "ts" begin
+		for smin=0:3,smax=smin:3,tmin=-smax:smax,tmax=tmin:smax
+			m2 = ts(smin,smax,tmin,tmax)
+			for (s,t) in m2
+				@test modeindex(m2,s,t) == modeindex2(m2,s,t)
+			end
+			m2c = collect(m2)
+			for s in s_range(m2), t1 in  t_valid_range(m2,s), 
+					t2 in t_valid_range(m2,s)
 
-	# 			tmin,tmax = minmax(t1,t2)
-	# 			@test modeindex(m2,s,tmin:tmax) == 
-	# 			findfirst(isequal((s,tmin)),m2c):findfirst(isequal((s,tmax)),m2c)
-	# 		end
-	# 	end
-	# end
+				tmin,tmax = minmax(t1,t2)
+				@test modeindex(m2,s,tmin:tmax) == 
+				findfirst(isequal((s,tmin)),m2c):findfirst(isequal((s,tmax)),m2c)
+			end
+		end
+	end
 
 	# @testset "s′s" begin
 	# 	for smin=0:3,smax=smin:3,Δs_max=0:3,s′min=0:3,s′max=s′min:3
