@@ -143,34 +143,55 @@ end
 	modeindex2(m::SHModeRange,(s,t)::Tuple) = modeindex(m,s,t)
 
 	@testset "st" begin
-		m1 = st(rand(0:3),rand(6:10))
-		for (s,t) in m1
-			@test modeindex(m1,s,t) == modeindex2(m1,s,t)
+		for smin=0:3,smax=smin:3,tmin=-smax:smax,tmax=tmin:smax
+			m1 = st(smin,smax,tmin,tmax)
+			for (s,t) in m1
+				@test modeindex(m1,s,t) == modeindex2(m1,s,t)
+			end
+			m1c = collect(m1)
+			for t in t_range(m1), s1 in s_valid_range(m1,t), 
+					s2 in s_valid_range(m1,t)
+				
+				smin,smax=minmax(s1,s2)
+				@test modeindex(m1,smin:smax,t) == 
+				findfirst(isequal((smin,t)),m1c):findfirst(isequal((smax,t)),m1c)
+			end
 		end
-		m1c = collect(m1)
-		t = rand(t_range(m1)); s1,s2 = rand(s_valid_range(m1,t),2); s1,s2=minmax(s1,s2)
-		@test modeindex(m1,s1:s2,t) == findfirst(isequal((s1,t)),m1c):findfirst(isequal((s2,t)),m1c)
 	end
 
-	@testset "ts" begin
-		m2 = ts(rand(0:3),rand(6:10))
-		for (s,t) in m2
-			@test modeindex(m2,s,t) == modeindex2(m2,s,t)
-		end
-		m2c = collect(m2)
-		s = rand(s_range(m2)); t1,t2 = rand(t_valid_range(m2,s),2); t1,t2 = minmax(t1,t2)
-		@test modeindex(m2,s,t1:t2) == findfirst(isequal((s,t1)),m2c):findfirst(isequal((s,t2)),m2c)
-	end
+	# @testset "ts" begin
+	# 	for smin=0:3,smax=smin:3,tmin=-smax:smax,tmax=tmin:smax
+	# 		m2 = ts(smin,smax,tmin,tmax)
+	# 		for (s,t) in m2
+	# 			@test modeindex(m2,s,t) == modeindex2(m2,s,t)
+	# 		end
+	# 		m2c = collect(m2)
+	# 		for s in s_range(m2), t1 in  t_valid_range(m2,s), 
+	# 				t2 in t_valid_range(m2,s)
 
-	@testset "s′s" begin
-		m3 = s′s(rand(1:3):rand(3:5),rand(1:4))
-		for (s′,s) in m3
-			@test modeindex(m3,s′,s) == modeindex2(m3,s′,s)
-		end
-		m3c = collect(m3)
-		s = rand(s_range(m3)); s′1,s′2 = rand(s′_valid_range(m3,s),2); s′1,s′2 = minmax(s′1,s′2)
-		@test modeindex(m3,s′1:s′2,s) == findfirst(isequal((s′1,s)),m3c):findfirst(isequal((s′2,s)),m3c)
-	end
+	# 			tmin,tmax = minmax(t1,t2)
+	# 			@test modeindex(m2,s,tmin:tmax) == 
+	# 			findfirst(isequal((s,tmin)),m2c):findfirst(isequal((s,tmax)),m2c)
+	# 		end
+	# 	end
+	# end
+
+	# @testset "s′s" begin
+	# 	for smin=0:3,smax=smin:3,Δs_max=0:3,s′min=0:3,s′max=s′min:3
+	# 		m3 = s′s(smin,smax,Δs_max,s′min,s′max)
+	# 		for (s′,s) in m3
+	# 			@test modeindex(m3,s′,s) == modeindex2(m3,s′,s)
+	# 		end
+	# 		m3c = collect(m3)
+	# 		for s = rand(s_range(m3)), s′1 in s′_valid_range(m3,s), 
+	# 			s′2 in s′_valid_range(m3,s)
+
+	# 			s′min,s′max = minmax(s′1,s′2)
+	# 			@test modeindex(m3,s′min:s′max,s) == 
+	# 			findfirst(isequal((s′min,s)),m3c):findfirst(isequal((s′max,s)),m3c)
+	# 		end
+	# 	end
+	# end
 end
 
 @testset "last" begin
