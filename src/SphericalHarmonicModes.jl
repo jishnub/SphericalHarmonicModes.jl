@@ -97,20 +97,25 @@ struct ts <: SHModeRange
 	end
 end
 
-struct s′s{B1,B2} <: ModeProduct
+struct s′s <: ModeProduct
 	smin :: Int
 	smax :: Int
 	Δs_max :: Int
 	s′min :: Int
 	s′max :: Int
 
-	# Parameters B1 and B2 check if lowerbound and upperbound
-	# are set to default values. This simplifies the expression 
-	# of the length and modeindex
+	function s′s(smin::Integer,smax::Integer,
+		Δs_max::Integer,s′min::Integer,s′max::Integer)
 
-	function s′s{B1,B2}(smin,smax,Δs_max,s′min,s′max) where {B1,B2}
 		check_if_non_negative(smin,smax,Δs_max,s′min,s′max)
-		new{B1,B2}(smin,smax,Δs_max,s′min,s′max)
+
+		# Alter the ranges if necessary
+		smin = max(smin,s′min-Δs_max,0)
+		s′min = max(smin-Δs_max,0,s′min,smin)
+		s′max = max(min(max(smax+Δs_max,0),s′max),s′min)
+		smax = min(smax,s′max+Δs_max)
+
+		new(smin,smax,Δs_max,s′min,s′max)
 	end
 end
 
@@ -132,18 +137,10 @@ end
 (::Type{T})(s_range::AbstractUnitRange{<:Integer}) where {T<:SHModeRange} = 
 	T(extrema(s_range)...)
 
-
 function s′s(smin::Integer,smax::Integer,Δs_max::Integer,
-	s′min::Integer=max(smin-Δs_max,0),s′max::Integer=smax+Δs_max)
+	s′min::Integer=max(smin-Δs_max,0))
 
-	smin = max(smin,s′min-Δs_max,0)
-	s′min = max(smin-Δs_max,0,s′min,smin)
-	s′max = max(min(max(smax+Δs_max,0),s′max),s′min)
-
-	B1 = s′min == max(smin-Δs_max,0)
-	B2 = s′max == smax+Δs_max
-
-	s′s{B1,B2}(smin,smax,Δs_max,s′min,s′max)
+	s′s(smin,smax,Δs_max,s′min,smax+Δs_max)
 end
 
 s′s(smin::Integer,smax::Integer,m::SHModeRange,args...) = s′s(smin,smax,m.smax,args...)
@@ -179,27 +176,6 @@ end
 @inline function s′_valid_range(m::s′s,s::Integer)
 	max(s - m.Δs_max,m.s′min):min(s + m.Δs_max,m.s′max)
 end
-
-# Number of modes of an st or a ts iterator
-# Number of modes does not depend on ordering
-
-# function neg_skip(smin,smax,tmin,tmax)
-# 	# This is count(t<tmin for s=smin:smax for t=-s:s), evaluated analytically
-# 	smin_part = max(smin,abs(tmin))
-# 	div((1 + smax - smin_part)*(smax + 2tmin + smin_part),2) + 
-# 	(tmin>smin ? tmin^2-smin^2 : 0)
-# end
-
-# function pos_skip(smin,smax,tmin,tmax)
-# 	# This is count(t>tmax for s=smin:smax for t=-s:s), evaluated analytically
-# 	smin_part = max(smin,abs(tmax))
-# 	div((1 + smax - smin_part)*(smax - 2tmax + smin_part),2) + 
-# 	(tmax < -smin ? tmax^2-smin^2 : 0 )
-# end
-
-# function num_modes(smin,smax,tmin,tmax)
-# 	(smax+1)^2-smin^2 - neg_skip(smin,smax,tmin,tmax) - pos_skip(smin,smax,tmin,tmax)
-# end
 
 function Base.length(m::st)
 
@@ -261,12 +237,6 @@ function Base.length(m::ts)
 	return N
 end
 
-# function length2(m::SHModeRange)
-
-# 	(m.smax+1)^2-m.smin^2 - neg_skip(m.smin,m.smax,m.tmin,m.tmax) - 
-# 		pos_skip(m.smin,m.smax,m.tmin,m.tmax)
-# end
-
 function Base.length(m::s′s)
 
 	# Number of modes is given by count(s′_valid_range(m,s) for s in s_range(m))
@@ -300,7 +270,7 @@ function Base.length(m::s′s)
 end
 
 # Number of modes of an s′s iterator
-function Base.length(m::s′s{true,true})
+function length2(m::s′s)
 	
 	smin,smax = m.smin,m.smax
     Δs_max = m.Δs_max
@@ -335,7 +305,7 @@ Base.lastindex(m::ModeRange) = length(m)
 @inline first_s(m::ts) = m.smin
 @inline first_t(m::ts) = first(t_valid_range(m,first_s(m)))
 
-@inline first_s(m::s′s) = m.smin
+@inline first_s(m::s′s) = max(m.smin,m.s′min-m.Δs_max)
 @inline first_s′(m::s′s) = first(s′_valid_range(m,first_s(m)))
 
 function Base.iterate(m::st, state=((first_s(m),first_t(m)), 1))
@@ -491,37 +461,6 @@ function modeindex(m::s′s,s′::Integer,s::Integer)
 	end
 	if min(s - 1, spmin + dsmax - 1) >= max(smin, spmax - dsmax + 1)
 		Nskip += (1 + spmax - spmin)*(1 - max(smin, 1 - dsmax + spmax) + min(-1 + s, -1 + dsmax + spmin))
-	end
-
-	Nskip + searchsortedfirst(s′_valid_range(m,s),s′)
-
-end
-
-function modeindex(m::s′s{true,true},s′::Integer,s::Integer)
-	
-	@assert((s′,s) in m,"Mode $((s′,s)) is not present in $m")
-
-	smin,smax = m.smin,m.smax
-	Δs_max = m.Δs_max
-
-	# Nskip = sum(length(s′range(s,m)) for s in smin:s-1)
-	# Exact expressions evaluated in Mathematica
-	if s==smin
-		Nskip = 0
-	elseif s==smin+1 && smin<=Δs_max
-		Nskip = 1 + smin + Δs_max
-	elseif s==smin+1 && smin>Δs_max
-		Nskip = 1 + 2Δs_max
-	elseif s - smin > 1 && smin - Δs_max > 0 && s - Δs_max >= 1
-		Nskip = (s - smin)*(1 + 2Δs_max)
-	elseif s - smin > 1 && s - Δs_max < 1 && smin - Δs_max < 0
-		Nskip = div( (s - smin)*(1 + s + smin + 2Δs_max),2)
-	elseif s - smin > 1 && s - Δs_max == 1 && smin - Δs_max < 0
-		Nskip = -div((-1 + smin - Δs_max)*(2 + smin + 3Δs_max),2)
-	elseif smin - Δs_max == 0 && s - smin > 1
-		Nskip = s - Δs_max + 2*(s - smin)*Δs_max
-	else
-		Nskip = div(2s - smin - smin^2 - Δs_max + 4s*Δs_max - 2smin*Δs_max - Δs_max^2,2)
 	end
 
 	Nskip + searchsortedfirst(s′_valid_range(m,s),s′)

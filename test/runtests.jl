@@ -177,7 +177,10 @@ end
 	end
 
 	@testset "s′s" begin
-		for smin=0:5,smax=smin:5,Δs_max=0:5,s′min=0:5,s′max=s′min:5
+		smax = 5
+		for smin=0:smax,smax=smin:smax,
+			Δs_max=0:smax,s′min=0:smax,s′max=s′min:smax
+
 			m3 = s′s(smin,smax,Δs_max,s′min,s′max)
 			for (s′,s) in m3
 				@test begin 
