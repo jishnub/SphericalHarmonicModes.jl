@@ -94,7 +94,7 @@ The ranges of `s` and `s′` will be clipped to the maximal valid subset based o
 ```julia
 julia> m=s′s(1,2,2)
 Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs for 0 ⩽ Δs ⩽ Δs_max, and s′min ⩽ s′ ⩽ s′max
-1 ⩽ s ⩽ 2, Δs_max = 2, and 1 ⩽ s′ ⩽ 4
+1 ⩽ s ⩽ 2, Δs_max = 2, and 0 ⩽ s′ ⩽ 4
 
 julia> s′s(1:2,2) == s′s(1,2,2)
 true
@@ -125,6 +125,20 @@ julia> @btime length(m)
 19540018501001
 ```
 
+However this can be evaluated faster by using the function `number_of_modes` that comes with this package. This avoids the time spent on multiple dispatch.
+
+```julia
+julia> m=st(0,20000000,-1000000,2000);
+
+julia> @btime number_of_modes(m)
+  7.264 ns (0 allocations: 0 bytes)
+19540018501001
+
+julia> @btime length(m)
+  19.349 ns (1 allocation: 16 bytes)
+19540018501001
+```
+
 It is easy to check whether a mode is present in the iterator. This can also be checked in `O(1)` time.
 
 ```julia
@@ -137,11 +151,23 @@ julia> @btime (1000,1000) in m
 true
 ```
 
+To avoid the dispatch time, one can use the internal `_in` function.
+
+```julia
+julia> m=st(0,20000000,-1000000,2000);
+
+julia> @btime (1000,1000) in m
+  13.636 ns (0 allocations: 0 bytes)
+true
+
+julia> @btime SphericalHarmonicModes._in((1000,1000),m)
+  3.649 ns (0 allocations: 0 bytes)
+true
+```
+
 The index at which a mode is present can be checked using `modeindex`. For example
 ```julia
-julia> m=ts(0,2,-1,2)
-Spherical harmonic modes with t increasing faster than s
-smin = 0, smax = 2, tmin = -1, tmax = 2
+julia> m=ts(0,2,-1,2);
 
 julia> collect(m)
 8-element Array{Tuple{Int64,Int64},1}:
@@ -170,21 +196,17 @@ julia> @btime modeindex(m,(20000,20000))
   25.370 ns (1 allocation: 16 bytes)
 400040001
 
-julia> m=s′s(1:100,100)
-Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs for 0 ⩽ Δs ⩽ Δs_max, and s′min ⩽ s′ ⩽ s′max
-1 ⩽ s ⩽ 100, Δs_max = 100, and 1 ⩽ s′ ⩽ 200
+julia> m=s′s(1:100,100);
 
 julia> @btime modeindex(m,(100,100))
-  25.730 ns (1 allocation: 16 bytes)
-14950
+  26.867 ns (1 allocation: 16 bytes)
+15050
 ```
 
 Indexing is not supported at the moment, but the last element can be obtained easily.
 
 ```julia
-julia> m=ts(0,2,-1,2)
-Spherical harmonic modes with t increasing faster than s
-smin = 0, smax = 2, tmin = -1, tmax = 2
+julia> m=ts(0,2,-1,2);
 
 julia> collect(m)
 8-element Array{Tuple{Int64,Int64},1}:

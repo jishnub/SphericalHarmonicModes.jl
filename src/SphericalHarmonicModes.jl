@@ -1,7 +1,7 @@
 module SphericalHarmonicModes
 
 export SHModeRange,st,ts,modeindex,s_valid_range,t_valid_range,s_range,t_range,
-s′s,s′_range,s′_valid_range
+s′s,s′_range,s′_valid_range,number_of_modes
 
 abstract type ModeRange end
 abstract type SHModeRange <: ModeRange end
@@ -177,7 +177,7 @@ end
 	max(s - m.Δs_max,m.s′min):min(s + m.Δs_max,m.s′max)
 end
 
-function Base.length(m::st)
+function number_of_modes(m::st)
 
 	# We evaluate Sum[smax - Max[Abs[t], smin] + 1] piecewise in 
 	# Mathematica. There are four cases to consider
@@ -203,7 +203,7 @@ function Base.length(m::st)
 	return N
 end
 
-function Base.length(m::ts)
+function number_of_modes(m::ts)
 
 	# We evaluate Sum[min(s,tmax)-max(-s,tmin)+1] piecewise in 
 	# Mathematica. There are four cases to consider
@@ -229,7 +229,7 @@ function Base.length(m::ts)
 	return N
 end
 
-function Base.length(m::s′s)
+function number_of_modes(m::s′s)
 
 	# Number of modes is given by count(s′_valid_range(m,s) for s in s_range(m))
 	smin,smax,spmin,spmax = m.smin,m.smax,m.s′min,m.s′max
@@ -237,7 +237,7 @@ function Base.length(m::s′s)
     
     N = 0
     if spmin == max(0,smin-dsmax) && spmax == smax+dsmax
-    	return length2(m)
+    	return number_of_modes_default_s′minmax(m)
     end
 
     if min(smax, spmax - dsmax) >= max(smin, spmin + dsmax)
@@ -264,10 +264,12 @@ function Base.length(m::s′s)
     return N
 end
 
+Base.length(m::ModeRange) = number_of_modes(m)
+
 # Number of modes of an s′s iterator
 # Assumes s′min = max(0,smin - Δs_max) and s′max = smax + Δs_max
 # Faster implementation
-function length2(m::s′s)
+function number_of_modes_default_s′minmax(m::s′s)
 	
 	smin,smax = m.smin,m.smax
     Δs_max = m.Δs_max
@@ -354,28 +356,30 @@ function Base.iterate(m::s′s,state=((first_s′(m),first_s(m)), 1))
 	return (s′,s),((next_s′,next_s),count+1)
 end
 
-function Base.in((s,t)::Tuple{<:Integer,<:Integer},m::ts)
+function _in((s,t)::Tuple{<:Integer,<:Integer},m::ts)
 	(abs(t)<=s) && (m.smin <= s <= m.smax) && (m.tmin <= t <= m.tmax) &&
 	(t in t_valid_range(m,s))
 end
 
-function Base.in((s,t)::Tuple{<:Integer,<:Integer},m::st)
+function _in((s,t)::Tuple{<:Integer,<:Integer},m::st)
 	(abs(t)<=s) && (m.smin <= s <= m.smax) && (m.tmin <= t <= m.tmax) &&
 	(s in s_valid_range(m,t))
 end
 
-function Base.in((s′,s)::Tuple{<:Integer,<:Integer},m::s′s)
+function _in((s′,s)::Tuple{<:Integer,<:Integer},m::s′s)
 	(m.smin <= s <= m.smax) && 
 	(m.s′min <= s′ <= m.s′max) && 
 	(s′ in s′_valid_range(m,s))
 end
+
+Base.in(T::Tuple{<:Integer,<:Integer},m::ModeRange) = _in(T,m)
 
 Base.last(m::st) = (last(s_valid_range(m,m.tmax)),m.tmax)
 Base.last(m::ts) = (m.smax,last(t_valid_range(m,m.tmax)))
 Base.last(m::s′s) = (last(s′_valid_range(m,m.smax)), m.smax)
 
 function modeindex(m::st,s::Integer,t::Integer)
-	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
+	!_in((s,t),m) && throw(ModeMissingError(s,t,m))
 	Nskip = 0
 	
 	smin,smax = m.smin,m.smax
@@ -408,7 +412,7 @@ end
 modeindex(m::st,::Colon,t::Integer) = modeindex(m,s_valid_range(m,t),t)
 
 function modeindex(m::ts,s::Integer,t::Integer)
-	((s,t) ∉ m) && throw(ModeMissingError(s,t,m))
+	!_in((s,t),m) && throw(ModeMissingError(s,t,m))
 	Nskip = 0
 	
 	smin,smax = m.smin,m.smax
@@ -441,7 +445,7 @@ end
 modeindex(m::ts,s::Integer,::Colon) = modeindex(m,s,t_valid_range(m,s))
 
 function modeindex(m::s′s,s′::Integer,s::Integer)
-	((s′,s) ∉ m) && throw(ModeMissingError(s′,s,m))
+	!_in((s′,s),m) && throw(ModeMissingError(s′,s,m))
 	Nskip = 0
 
 	smin,smax,spmin,spmax = m.smin,m.smax,m.s′min,m.s′max
