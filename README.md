@@ -21,45 +21,35 @@ julia> using SphericalHarmonicModes
 
 There are two different orderings possible to iterate over spherical harmonic modes, with either `s` or `t` increasing faster than the other. They are denoted by `st` and `ts`, where --- going by the Julia convention of column-major arrays --- the first index increases faster than the second. Irrespective of which ordering is chosen, the modes are always returned as `(s,t)`.
 
-To create an iterator with `t` increasing faster than `s`: 
+Both the iterators are created using the general syntax `m(smin,smax,tmin,tmax)` where `m` can be `st` or `ts`. To create an iterator with `t` increasing faster than `s`:
 
 ```julia
-julia> m=ts(0,2,-1,2)
+julia> m=ts(0,1,-1,1)
 Spherical harmonic modes with t increasing faster than s
-smin = 0, smax = 2, tmin = -1, tmax = 2
+smin = 0, smax = 1, tmin = -1, tmax = 1
 
 julia> collect(m)
-8-element Array{Tuple{Int64,Int64},1}:
+4-element Array{Tuple{Int64,Int64},1}:
  (0, 0) 
  (1, -1)
  (1, 0) 
- (1, 1) 
- (2, -1)
- (2, 0) 
- (2, 1) 
- (2, 2)
+ (1, 1)
 ```
 
 To create an iterator with `s` increasing faster than `t`:
 
 ```julia
-julia> m=st(0,2,-1,2)
+julia> m=st(0,1,-1,1)
 Spherical harmonic modes with s increasing faster than t
-smin = 0, smax = 2, tmin = -1, tmax = 2
+smin = 0, smax = 1, tmin = -1, tmax = 1
 
 julia> collect(m)
-8-element Array{Tuple{Int64,Int64},1}:
+4-element Array{Tuple{Int64,Int64},1}:
  (1, -1)
- (2, -1)
  (0, 0) 
  (1, 0) 
- (2, 0) 
- (1, 1) 
- (2, 1) 
- (2, 2)
+ (1, 1)
  ```
-
- Note that the modes are ordered by the slower index, so the first mode might not be the one for which `s==smin`.
 
  Special constructors to include all `t`s are available for convenience.
 
@@ -86,21 +76,39 @@ smin = 2, smax = 4, tmin = 0, tmax = 2
 
 ### Creating an (s',s) iterator
 
-This iterator can be created as 
+This iterator can be created as `s′s(smin,smax,Δs_max,s′min,s′max)`, for example
+
 ```julia
-julia> m=s′s(0:1,2)
-Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs and 0 ⩽ Δs ⩽ Δs_max
-0 ⩽ s ⩽ 1, Δs_max = 2
+julia> m=s′s(1,2,2,1,1)
+Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs for 0 ⩽ Δs ⩽ Δs_max, and s′min ⩽ s′ ⩽ s′max
+1 ⩽ s ⩽ 2, Δs_max = 2, and 1 ⩽ s′ ⩽ 1
 
 julia> collect(m)
-7-element Array{Tuple{Int64,Int64},1}:
- (0, 0)
- (1, 0)
- (2, 0)
- (0, 1)
+2-element Array{Tuple{Int64,Int64},1}:
  (1, 1)
- (2, 1)
- (3, 1)
+ (1, 2)
+```
+
+The ranges of `s` and `s′` will be clipped to the maximal valid subset based on `Δs_max`. Several convenience constructors are available, such as 
+
+```julia
+julia> m=s′s(1,2,2)
+Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs for 0 ⩽ Δs ⩽ Δs_max, and s′min ⩽ s′ ⩽ s′max
+1 ⩽ s ⩽ 2, Δs_max = 2, and 1 ⩽ s′ ⩽ 4
+
+julia> s′s(1:2,2) == s′s(1,2,2)
+true
+
+julia> m=s′s(1:2,2,2)
+Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs for 0 ⩽ Δs ⩽ Δs_max, and s′min ⩽ s′ ⩽ s′max
+1 ⩽ s ⩽ 2, Δs_max = 2, and 2 ⩽ s′ ⩽ 4
+
+julia> m=s′s(1:2,2,2,2)
+Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs for 0 ⩽ Δs ⩽ Δs_max, and s′min ⩽ s′ ⩽ s′max
+1 ⩽ s ⩽ 2, Δs_max = 2, and 2 ⩽ s′ ⩽ 2
+
+julia> s′s(1:2,2,2:2) == s′s(1:2,2,2,2)
+true
 ```
 
 ### Using the iterators
@@ -124,7 +132,8 @@ julia> m=st(0,20000000,-1000000,2000)
 Spherical harmonic modes with s increasing faster than t
 smin = 0, smax = 20000000, tmin = -1000000, tmax = 2000
 
-julia> (1000,1000) in m
+julia> @btime (1000,1000) in m
+  12.876 ns (0 allocations: 0 bytes)
 true
 ```
 
@@ -158,8 +167,16 @@ This is also evaluated in `O(1)` time.
 julia> m=ts(0,20000);
 
 julia> @btime modeindex(m,(20000,20000))
-  74.562 ns (1 allocation: 16 bytes)
+  25.370 ns (1 allocation: 16 bytes)
 400040001
+
+julia> m=s′s(1:100,100)
+Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs for 0 ⩽ Δs ⩽ Δs_max, and s′min ⩽ s′ ⩽ s′max
+1 ⩽ s ⩽ 100, Δs_max = 100, and 1 ⩽ s′ ⩽ 200
+
+julia> @btime modeindex(m,(100,100))
+  25.730 ns (1 allocation: 16 bytes)
+14950
 ```
 
 Indexing is not supported at the moment, but the last element can be obtained easily.
@@ -189,6 +206,8 @@ julia> @btime last(m)
   16.645 ns (1 allocation: 32 bytes)
 (20000, 20000)
 ```
+
+The times were measured on an Intel® Core™ i7-8650U machine.
 
 ## License
 
