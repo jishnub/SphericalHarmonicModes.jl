@@ -311,7 +311,7 @@ function Base.iterate(m::st, state=((first_s(m),first_t(m)), 1))
 
 	(s,t), count = state
 
-	if count > length(m)
+	if count > number_of_modes(m)
 		return nothing
 	end
 
@@ -325,7 +325,7 @@ function Base.iterate(m::ts, state=((first_s(m),first_t(m)), 1))
 	
 	(s,t), count = state
 
-	if count > length(m)
+	if count > number_of_modes(m)
 		return nothing
 	end
 
@@ -338,7 +338,7 @@ end
 function Base.iterate(m::s′s,state=((first_s′(m),first_s(m)), 1))
 
 	(s′,s),count = state
-	if count > length(m)
+	if count > number_of_modes(m)
 		return nothing
 	end
 
