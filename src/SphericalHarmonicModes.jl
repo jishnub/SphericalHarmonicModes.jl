@@ -111,7 +111,7 @@ struct s′s <: ModeProduct
 
 		# Alter the ranges if necessary
 		smin = max(smin,s′min-Δs_max,0)
-		s′min = max(smin-Δs_max,0,s′min,smin)
+		s′min = max(smin-Δs_max,0,s′min)
 		s′max = max(min(max(smax+Δs_max,0),s′max),s′min)
 		smax = min(smax,s′max+Δs_max)
 
@@ -244,6 +244,9 @@ function Base.length(m::s′s)
 	dsmax = m.Δs_max
     
     N = 0
+    if spmin == max(0,smin-dsmax) && spmax == smax+dsmax
+    	return length2(m)
+    end
 
     if min(smax, spmax - dsmax) >= max(smin, spmin + dsmax)
     	
@@ -270,6 +273,8 @@ function Base.length(m::s′s)
 end
 
 # Number of modes of an s′s iterator
+# Assumes s′min = max(0,smin - Δs_max) and s′max = smax + Δs_max
+# Faster implementation
 function length2(m::s′s)
 	
 	smin,smax = m.smin,m.smax
