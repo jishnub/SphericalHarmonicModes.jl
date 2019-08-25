@@ -188,24 +188,16 @@ function Base.length(m::st)
 	N = 0
 
 	if min(tmax,-1) >= max(tmin,-smin)
-		T= (1 + smax - smin)*(1 - max(-smin, tmin) + min(-1, tmax))
-		# println(1," ",T)
-		N += T
+		N += (1 + smax - smin)*(1 - max(-smin, tmin) + min(-1, tmax))
 	end
 	if min(tmax, smin) >= max(tmin, 0)
-		T= (1 + smax - smin)*(1 - max(0, tmin) + min(smin, tmax))
-		# println(2," ",T)
-		N += T
+		N += (1 + smax - smin)*(1 - max(0, tmin) + min(smin, tmax))
 	end
 	if tmax >= max(tmin, smin + 1)
-		T= div(-((1 + tmax - max(1 + smin, tmin))*(-2 - 2*smax + tmax + max(1 + smin, tmin))),2)
-		# println(3," ",T)
-		N += T
+		N += div(-((1 + tmax - max(1 + smin, tmin))*(-2 - 2*smax + tmax + max(1 + smin, tmin))),2)
 	end
 	if min(tmax,-1,-smin - 1) >= max(tmin, -smax)
-		T= div(-((-1 + max(-smax, tmin) - min(-1, -1 - smin, tmax))*(2 + 2*smax + max(-smax, tmin) + min(-1, -1 - smin, tmax))),2)
-		# println(4," ",T)
-		N += T
+		N += div(-((-1 + max(-smax, tmin) - min(-1, -1 - smin, tmax))*(2 + 2*smax + max(-smax, tmin) + min(-1, -1 - smin, tmax))),2)
 	end
 
 	return N
