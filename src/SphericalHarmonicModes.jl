@@ -1,7 +1,7 @@
 module SphericalHarmonicModes
 
 export SHModeRange,st,ts,modeindex,s_valid_range,t_valid_range,s_range,t_range,
-s′s,s′_range,s′_valid_range,number_of_modes
+s′s,s′_range,s′_valid_range,_length
 
 abstract type ModeRange end
 abstract type SHModeRange <: ModeRange end
@@ -31,6 +31,11 @@ struct NegativeDegreeError{T<:Integer} <: Exception
 	s :: T
 end
 
+struct InvalidModeError{Ts<:Integer,Tt<:Integer} <: Exception
+	s :: Ts
+	t :: Tt
+end
+
 Base.showerror(io::IO, e::tRangeError) = print(io," t = ", e.t,
 		" does not satisfy ",-e.smax," ⩽ t ⩽ ",e.smax)
 
@@ -46,7 +51,10 @@ Base.showerror(io::IO, e::ModeMissingError{<:ModeProduct}) =
 	" is not included in the range given by ",e.m)
 
 Base.showerror(io::IO, e::NegativeDegreeError) = print(io,"s = ",e.s,
-	" is not a valid mode")
+	" does not correspond to a valid mode")
+
+Base.showerror(io::IO, e::InvalidModeError) = print(io,"(s=",e.s,",t=",e.t,")",
+	" is not a valid mode. |t| <= s is not satisfied")
 
 check_if_non_negative() = true
 
@@ -55,7 +63,7 @@ function check_if_non_negative(s::Integer,args...)
 	check_if_non_negative(args...)
 end
 
-function check_if_st_valid(smin,smax,tmin,tmax)
+function check_if_st_range_is_valid(smin,smax,tmin,tmax)
 	check_if_non_negative(smin,smax)
 	if tmin > tmax 
 		throw(OrderError("t",tmin,tmax))
@@ -71,6 +79,11 @@ function check_if_st_valid(smin,smax,tmin,tmax)
 	end
 end
 
+function check_if_valid_mode(s::Integer,t::Integer)
+	check_if_non_negative(s)
+	abs(t) > s && throw(InvalidModeError(s,t))
+end
+
 struct st <: SHModeRange
 	smin :: Int
 	smax :: Int
@@ -78,7 +91,7 @@ struct st <: SHModeRange
 	tmax :: Int
 
 	function st(smin,smax,tmin,tmax)
-		check_if_st_valid(smin,smax,tmin,tmax)
+		check_if_st_range_is_valid(smin,smax,tmin,tmax)
 		smin = max(smin,max(tmin,-tmax))
 		new(smin,smax,tmin,tmax)
 	end
@@ -91,7 +104,7 @@ struct ts <: SHModeRange
 	tmax :: Int
 
 	function ts(smin,smax,tmin,tmax)
-		check_if_st_valid(smin,smax,tmin,tmax)
+		check_if_st_range_is_valid(smin,smax,tmin,tmax)
 		smin = max(smin,max(tmin,-tmax))
 		new(smin,smax,tmin,tmax)
 	end
@@ -177,7 +190,7 @@ end
 	max(s - m.Δs_max,m.s′min):min(s + m.Δs_max,m.s′max)
 end
 
-function number_of_modes(m::st)
+function _length(m::st)
 
 	# We evaluate Sum[smax - Max[Abs[t], smin] + 1] piecewise in 
 	# Mathematica. There are four cases to consider
@@ -203,7 +216,7 @@ function number_of_modes(m::st)
 	return N
 end
 
-function number_of_modes(m::ts)
+function _length(m::ts)
 
 	# We evaluate Sum[min(s,tmax)-max(-s,tmin)+1] piecewise in 
 	# Mathematica. There are four cases to consider
@@ -229,7 +242,7 @@ function number_of_modes(m::ts)
 	return N
 end
 
-function number_of_modes(m::s′s)
+function _length(m::s′s)
 
 	# Number of modes is given by count(s′_valid_range(m,s) for s in s_range(m))
 	smin,smax,spmin,spmax = m.smin,m.smax,m.s′min,m.s′max
@@ -264,29 +277,7 @@ function number_of_modes(m::s′s)
     return N
 end
 
-Base.length(m::ModeRange) = number_of_modes(m)
-
-# Number of modes of an s′s iterator
-# Assumes s′min = max(0,smin - Δs_max) and s′max = smax + Δs_max
-# Faster implementation
-function number_of_modes_default_s′minmax(m::s′s)
-	
-	smin,smax = m.smin,m.smax
-    Δs_max = m.Δs_max
-
-	N = 0
-
-	if smin < Δs_max
-        N += -div((-1 + smin - min(smax, Δs_max -1 ))*
-                    (2 + smin + 2Δs_max + min(smax, Δs_max -1 )),2)
-    end
-
-    if smax >= Δs_max
-        N += (1 + smax - max(Δs_max,smin)) * (1 + 2Δs_max)
-    end
-
-	return N
-end
+Base.length(m::ModeRange) = _length(m)
 
 Base.firstindex(m::ModeRange) = 1
 Base.lastindex(m::ModeRange) = length(m)
@@ -311,7 +302,7 @@ function Base.iterate(m::st, state=((first_s(m),first_t(m)), 1))
 
 	(s,t), count = state
 
-	if count > number_of_modes(m)
+	if count > _length(m)
 		return nothing
 	end
 
@@ -325,7 +316,7 @@ function Base.iterate(m::ts, state=((first_s(m),first_t(m)), 1))
 	
 	(s,t), count = state
 
-	if count > number_of_modes(m)
+	if count > _length(m)
 		return nothing
 	end
 
@@ -338,7 +329,7 @@ end
 function Base.iterate(m::s′s,state=((first_s′(m),first_s(m)), 1))
 
 	(s′,s),count = state
-	if count > number_of_modes(m)
+	if count > _length(m)
 		return nothing
 	end
 
@@ -379,7 +370,8 @@ Base.last(m::ts) = (m.smax,last(t_valid_range(m,m.tmax)))
 Base.last(m::s′s) = (last(s′_valid_range(m,m.smax)), m.smax)
 
 function modeindex(m::st,s::Integer,t::Integer)
-	!_in((s,t),m) && throw(ModeMissingError(s,t,m))
+	check_if_valid_mode(s,t)
+	(s,t) ∉ m && throw(ModeMissingError(s,t,m))
 	Nskip = 0
 	
 	smin,smax = m.smin,m.smax
@@ -412,7 +404,8 @@ end
 modeindex(m::st,::Colon,t::Integer) = modeindex(m,s_valid_range(m,t),t)
 
 function modeindex(m::ts,s::Integer,t::Integer)
-	!_in((s,t),m) && throw(ModeMissingError(s,t,m))
+	check_if_valid_mode(s,t)
+	(s,t) ∉ m && throw(ModeMissingError(s,t,m))
 	Nskip = 0
 	
 	smin,smax = m.smin,m.smax
@@ -445,7 +438,7 @@ end
 modeindex(m::ts,s::Integer,::Colon) = modeindex(m,s,t_valid_range(m,s))
 
 function modeindex(m::s′s,s′::Integer,s::Integer)
-	!_in((s′,s),m) && throw(ModeMissingError(s′,s,m))
+	(s′,s) ∉ m && throw(ModeMissingError(s′,s,m))
 	Nskip = 0
 
 	smin,smax,spmin,spmax = m.smin,m.smax,m.s′min,m.s′max

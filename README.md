@@ -11,7 +11,7 @@ This package provides two iterators that are relevant in the context of spherica
 ### Installing
 
 ```julia
-] add "https://github.com/jishnub/SphericalHarmonicModes.jl.git"
+] add SphericalHarmonicModes
 
 julia> using SphericalHarmonicModes
 ```
@@ -67,7 +67,7 @@ Spherical harmonic modes with s increasing faster than t
 smin = 2, smax = 4, tmin = -4, tmax = 4
 ```
 
- You can also choose a range of `t`s.
+ You can also choose a range of `t`'s.
 ```julia
 julia> st(2:4,0:2)
 Spherical harmonic modes with s increasing faster than t
@@ -116,52 +116,20 @@ true
  The length of an iterator can be computed in `O(1)` time.
  
 ```julia
-julia> m=st(0,20000000,-1000000,2000)
-Spherical harmonic modes with s increasing faster than t
-smin = 0, smax = 20000000, tmin = -1000000, tmax = 2000
-
-julia> @btime length(m)
-  20.630 ns (1 allocation: 16 bytes)
-19540018501001
-```
-
-However this can be evaluated faster by using the function `number_of_modes` that comes with this package. This avoids the time spent on multiple dispatch.
-
-```julia
 julia> m=st(0,20000000,-1000000,2000);
 
-julia> @btime number_of_modes(m)
-  7.264 ns (0 allocations: 0 bytes)
-19540018501001
-
-julia> @btime length(m)
-  19.349 ns (1 allocation: 16 bytes)
+julia> @btime length($m)
+  5.819 ns (0 allocations: 0 bytes)
 19540018501001
 ```
 
 It is easy to check whether a mode is present in the iterator. This can also be checked in `O(1)` time.
 
 ```julia
-julia> m=st(0,20000000,-1000000,2000)
-Spherical harmonic modes with s increasing faster than t
-smin = 0, smax = 20000000, tmin = -1000000, tmax = 2000
-
-julia> @btime (1000,1000) in m
-  12.876 ns (0 allocations: 0 bytes)
-true
-```
-
-To avoid the dispatch time, one can use the internal `_in` function.
-
-```julia
 julia> m=st(0,20000000,-1000000,2000);
 
-julia> @btime (1000,1000) in m
-  13.636 ns (0 allocations: 0 bytes)
-true
-
-julia> @btime SphericalHarmonicModes._in((1000,1000),m)
-  3.649 ns (0 allocations: 0 bytes)
+julia> @btime (1000,1000) in $m
+  0.029 ns (0 allocations: 0 bytes)
 true
 ```
 
@@ -192,14 +160,14 @@ This is also evaluated in `O(1)` time.
 ```julia
 julia> m=ts(0,20000);
 
-julia> @btime modeindex(m,(20000,20000))
-  25.370 ns (1 allocation: 16 bytes)
+julia> @btime modeindex($m,(20000,20000))
+  9.265 ns (0 allocations: 0 bytes)
 400040001
 
 julia> m=s′s(1:100,100);
 
-julia> @btime modeindex(m,(100,100))
-  26.867 ns (1 allocation: 16 bytes)
+julia> @btime modeindex($m,(100,100))
+  10.080 ns (0 allocations: 0 bytes)
 15050
 ```
 
@@ -208,24 +176,16 @@ Indexing is not supported at the moment, but the last element can be obtained ea
 ```julia
 julia> m=ts(0,2,-1,2);
 
-julia> collect(m)
-8-element Array{Tuple{Int64,Int64},1}:
- (0, 0) 
- (1, -1)
- (1, 0) 
- (1, 1) 
- (2, -1)
- (2, 0) 
- (2, 1) 
- (2, 2) 
+julia> collect(m)[end]
+(2, 2)
 
 julia> last(m)
 (2, 2)
 
 julia> m=ts(0,20000);
 
-julia> @btime last(m)
-  16.645 ns (1 allocation: 32 bytes)
+julia> @btime last($m)
+  0.029 ns (0 allocations: 0 bytes)
 (20000, 20000)
 ```
 
