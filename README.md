@@ -161,13 +161,19 @@ This is also evaluated in `O(1)` time.
 julia> m=ts(0,20000);
 
 julia> @btime modeindex($m,(20000,20000))
-  9.265 ns (0 allocations: 0 bytes)
+  0.029 ns (0 allocations: 0 bytes)
+400040001
+
+julia> m=st(0,20000);
+
+julia> @btime modeindex($m,(20000,20000))
+  0.029 ns (0 allocations: 0 bytes)
 400040001
 
 julia> m=s′s(1:100,100);
 
 julia> @btime modeindex($m,(100,100))
-  10.080 ns (0 allocations: 0 bytes)
+  0.029 ns (0 allocations: 0 bytes)
 15050
 ```
 

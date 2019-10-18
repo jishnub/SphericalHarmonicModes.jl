@@ -56,15 +56,12 @@ Base.showerror(io::IO, e::NegativeDegreeError) = print(io,"s = ",e.s,
 Base.showerror(io::IO, e::InvalidModeError) = print(io,"(s=",e.s,",t=",e.t,")",
 	" is not a valid mode. |t| <= s is not satisfied")
 
-check_if_non_negative() = true
-
-function check_if_non_negative(s::Integer,args...)
-	s < 0 && throw(NegativeDegreeError(s))
-	check_if_non_negative(args...)
+function check_if_non_negative(s::Integer)
+	s >= 0 || throw(NegativeDegreeError(s))
 end
 
 function check_if_st_range_is_valid(smin,smax,tmin,tmax)
-	check_if_non_negative(smin,smax)
+	check_if_non_negative.((smin,smax))
 	if tmin > tmax 
 		throw(OrderError("t",tmin,tmax))
 	end
@@ -79,9 +76,12 @@ function check_if_st_range_is_valid(smin,smax,tmin,tmax)
 	end
 end
 
-function check_if_valid_mode(s::Integer,t::Integer)
-	check_if_non_negative(s)
-	abs(t) > s && throw(InvalidModeError(s,t))
+@inline function check_if_valid_mode(s::Integer,t::Integer)
+	abs(t) <= s || throw(InvalidModeError(s,t))
+end
+
+@inline function check_if_mode_present(m,s,t)
+	(s,t) in m || throw(ModeMissingError(s,t,m))
 end
 
 struct st <: SHModeRange
@@ -120,7 +120,7 @@ struct s′s <: ModeProduct
 	function s′s(smin::Integer,smax::Integer,
 		Δs_max::Integer,s′min::Integer,s′max::Integer)
 
-		check_if_non_negative(smin,smax,Δs_max,s′min,s′max)
+		check_if_non_negative.((smin,smax,Δs_max,s′min,s′max))
 
 		# Alter the ranges if necessary
 		smin = max(smin,s′min-Δs_max,0)
@@ -200,17 +200,28 @@ function _length(m::st)
 
 	N = 0
 
-	if min(tmax,-1) >= max(tmin,-smin)
-		N += (1 + smax - smin)*(1 - max(-smin, tmin) + min(-1, tmax))
+	up = min(-1, tmax)
+	lo = max(tmin,-smin)
+	if up >= lo
+		N += (1 + smax - smin)*(1 - lo + up)
 	end
-	if min(tmax, smin) >= max(tmin, 0)
-		N += (1 + smax - smin)*(1 - max(0, tmin) + min(smin, tmax))
+	
+	up = min(tmax, smin)
+	lo = max(tmin, 0)
+	if up >= lo
+		N += (1 + smax - smin)*(1 - lo + up)
 	end
-	if tmax >= max(tmin, smin + 1)
-		N += div(-((1 + tmax - max(1 + smin, tmin))*(-2 - 2*smax + tmax + max(1 + smin, tmin))),2)
+
+	up = tmax
+	lo = max(tmin, smin + 1)
+	if up >= lo
+		N += div(-((1 + up - lo)*(-2 - 2smax + up + lo)),2)
 	end
-	if min(tmax,-1,-smin - 1) >= max(tmin, -smax)
-		N += div(-((-1 + max(-smax, tmin) - min(-1, -1 - smin, tmax))*(2 + 2*smax + max(-smax, tmin) + min(-1, -1 - smin, tmax))),2)
+
+	up = min(-1, -1 - smin, tmax)
+	lo = max(-smax, tmin)
+	if up >= lo
+		N += div(-((-1 + lo - up)*(2 + 2smax + lo + up)),2)
 	end
 
 	return N
@@ -226,17 +237,28 @@ function _length(m::ts)
 
 	N = 0
 
-	if min(-tmin, tmax,smax) >= smin
-		N += -(-1+smin-min(smax,tmax,-tmin))*(1+smin+min(smax,tmax,-tmin))
+	up = min(-tmin, tmax,smax)
+	lo = smin
+	if up >= lo
+		N += -(-1 + lo - up)*(1 + lo + up)
 	end
-	if min(-tmin, smax) >= max(smin, max(tmax + 1, -tmax))
-		N += div(-((-1 + max(smin, -tmax, 1 + tmax) - min(smax, -tmin))*(2 + 2*tmax + max(smin, -tmax, 1 + tmax) + min(smax, -tmin))),2)
+	
+	up = min(-tmin, smax)
+	lo = max(smin, tmax + 1, -tmax)
+	if up >= lo
+		N += div(-((-1 + lo - up)*(2 + 2tmax + lo + up)),2)
 	end
-	if min(tmax, smax) >= max(smin, -tmin + 1, tmin)
-		N += div(-((-1 + max(smin, 1 - tmin, tmin) - min(smax, tmax))*(2 - 2*tmin + max(smin, 1 - tmin, tmin) + min(smax, tmax))),2)
+
+	up = min(tmax, smax)
+	lo = max(smin, -tmin + 1, tmin)
+	if up >= lo
+		N += div(-((-1 + lo - up)*(2 - 2tmin + lo + up)),2)
 	end
-	if smax >= max(-tmin + 1, tmax + 1,smin)
-		N += (1 + tmax - tmin)*(1 + smax - max(1 + tmax, 1 - tmin,smin))
+
+	up = smax
+	lo = max(-tmin + 1, tmax + 1,smin)
+	if up >= lo
+		N += (1 + tmax - tmin)*(1 + up - lo)
 	end
 
 	return N
@@ -249,29 +271,29 @@ function _length(m::s′s)
 	dsmax = m.Δs_max
     
     N = 0
-    if spmin == max(0,smin-dsmax) && spmax == smax+dsmax
-    	return number_of_modes_default_s′minmax(m)
+
+    up = min(smax, spmax - dsmax)
+    lo = max(smin, spmin + dsmax)
+    if up >= lo
+    	N += (1 + 2*dsmax)*(1 - lo + up)
     end
 
-    if min(smax, spmax - dsmax) >= max(smin, spmin + dsmax)
-    	
-    	N += (1 + 2*dsmax)*(1 - max(smin, dsmax + spmin) + min(smax, -dsmax + spmax))
-
+    up = min(smax,spmax + dsmax)
+    lo = max(smin, spmin + dsmax, spmax - dsmax + 1)
+    if up >= lo
+    	N += div((-1 + lo - up)*(-2*(1 + dsmax + spmax) + lo + up),2)
     end
-    if min(smax,spmax + dsmax) >= max(smin, spmin + dsmax, spmax - dsmax + 1)
-    	
-    	N+= div((-1 + max(smin, 1 - dsmax + spmax, dsmax + spmin) - min(smax, dsmax + spmax))*(-2*(1 + dsmax + spmax) + max(smin, 1 - dsmax + spmax, dsmax + spmin) + min(smax, dsmax + spmax)),2)
 
+    up = min(smax, spmin + dsmax - 1, spmax - dsmax)
+    lo = max(smin,spmin - dsmax)
+    if up >= lo
+    	N += div(-((-1 + lo - up)*(2 + 2dsmax - 2spmin + lo + up)),2)
     end
-    if min(smax, spmin + dsmax - 1, spmax - dsmax) >= max(smin,spmin - dsmax)
-    	
-    	N+= div(-((-1 + max(smin, -dsmax + spmin) - min(smax, -dsmax + spmax, -1 + dsmax + spmin))*(2 + 2*dsmax - 2*spmin + max(smin, -dsmax + spmin) + min(smax, -dsmax + spmax, -1 + dsmax + spmin))),2)
 
-    end
-    if min(smax, spmin + dsmax - 1) >= max(smin,spmax - dsmax + 1)
-    	
-    	N+= (1 + spmax - spmin)*(1 - max(smin, 1 - dsmax + spmax) + min(smax, -1 + dsmax + spmin))
-
+    up = min(smax, spmin + dsmax - 1)
+    lo = max(smin,spmax - dsmax + 1)
+    if up >= lo
+    	N += (1 + spmax - spmin)*(1 - lo + up)
     end
 
     return N
@@ -306,8 +328,13 @@ function Base.iterate(m::st, state=((first_s(m),first_t(m)), 1))
 		return nothing
 	end
 
-	next_t = (s == m.smax) ? t+1 : t
-	next_s = (s == m.smax) ? max(m.smin,abs(next_t)) : s + 1
+	if s == m.smax
+		next_t = t + 1
+		next_s = max(m.smin,abs(next_t))
+	else
+		next_t = t
+		next_s = s + 1
+	end
 
 	return (s,t), ((next_s,next_t), count + 1)
 end
@@ -316,12 +343,17 @@ function Base.iterate(m::ts, state=((first_s(m),first_t(m)), 1))
 	
 	(s,t), count = state
 
-	if count > _length(m)
+	if count > length(m)
 		return nothing
 	end
 
-	next_s = (t == min(m.tmax,s)) ? s+1 : s
-	next_t = (t == min(m.tmax,s)) ? max(m.tmin,-next_s) : t + 1
+	if t == min(m.tmax,s)
+		next_s = s + 1
+		next_t = max(m.tmin,-next_s)
+	else
+		next_s = s
+		next_t = t + 1
+	end
 
 	return (s,t), ((next_s,next_t), count + 1)
 end
@@ -329,14 +361,13 @@ end
 function Base.iterate(m::s′s,state=((first_s′(m),first_s(m)), 1))
 
 	(s′,s),count = state
-	if count > _length(m)
+	if count > length(m)
 		return nothing
 	end
 
 	s′_range_s = s′_valid_range(m,s)
 
-	s′ind = searchsortedfirst(s′_range_s,s′)
-	if s′ind==length(s′_range_s)
+	if s′ == last(s′_range_s)
 		next_s = s + 1
 		next_s′ = first(s′_valid_range(m,next_s))
 	else
@@ -370,8 +401,11 @@ Base.last(m::ts) = (m.smax,last(t_valid_range(m,m.tmax)))
 Base.last(m::s′s) = (last(s′_valid_range(m,m.smax)), m.smax)
 
 function modeindex(m::st,s::Integer,t::Integer)
+	# Check if the s and t supplied correspond to valid modes
+	check_if_non_negative(s)
 	check_if_valid_mode(s,t)
-	(s,t) ∉ m && throw(ModeMissingError(s,t,m))
+	check_if_mode_present(m,s,t)
+
 	Nskip = 0
 	
 	smin,smax = m.smin,m.smax
@@ -379,20 +413,32 @@ function modeindex(m::st,s::Integer,t::Integer)
 
 	# Nskip = sum(length(s_valid_range(m,ti)) fot ti=m.tmin:t-1)
 
-	if min(t - 1, -1) >= max(tmin, -smin)
-		Nskip += (1 + smax - smin)*(1 - max(-smin, tmin) + min(-1, -1 + t))
-	end
-	if min(t - 1, smin) >= max(tmin, 0)
-		Nskip += (1 + smax - smin)*(1 - max(0, tmin) + min(smin, -1 + t))
-	end
-	if min(t - 1, tmax, smax) >= max(tmin, smin + 1)
-		Nskip += div((-1 + max(1 + smin, tmin) - min(smax, -1 + t, tmax))*(-2*(1 + smax) + max(1 + smin, tmin) + min(smax, -1 + t, tmax)),2)
-	end
-	if min(t - 1, -1, -smin - 1) >= max(tmin, -smax)
-		Nskip += div(-((-1 + max(-smax, tmin) - min(-1, -1 - smin, -1 + t))*(2 + 2*smax + max(-smax, tmin) + min(-1, -1 - smin, -1 + t))),2)
+	up = min(t - 1, -1)
+	lo = max(tmin, -smin)
+	if up >= lo
+		Nskip += (1 + smax - smin)*(1 - lo + up)
 	end
 
-	Nskip + searchsortedfirst(s_valid_range(m,t),s)
+	up = min(t - 1, smin)
+	lo = max(tmin, 0)
+	if up >= lo
+		Nskip += (1 + smax - smin)*(1 - lo + up)
+	end
+
+	up = min(t - 1, tmax, smax)
+	lo = max(tmin, smin + 1)
+	if up >= lo
+		Nskip += div((-1 + lo - up)*(-2*(1 + smax) + lo + up),2)
+	end
+
+	up = min(t - 1, -1, -smin - 1)
+	lo = max(tmin, -smax)
+	if up >= lo
+		Nskip += div(-((-1 + lo - up)*(2 + 2smax + lo + up)),2)
+	end
+
+	ind_s = s - first(s_valid_range(m,t)) + 1
+	Nskip + ind_s
 end
 
 function modeindex(m::st,s::AbstractUnitRange{<:Integer},t::Integer)
@@ -404,8 +450,11 @@ end
 modeindex(m::st,::Colon,t::Integer) = modeindex(m,s_valid_range(m,t),t)
 
 function modeindex(m::ts,s::Integer,t::Integer)
+	# Check if the s and t supplied correspond to valid modes
+	check_if_non_negative(s)
 	check_if_valid_mode(s,t)
-	(s,t) ∉ m && throw(ModeMissingError(s,t,m))
+	check_if_mode_present(m,s,t)
+
 	Nskip = 0
 	
 	smin,smax = m.smin,m.smax
@@ -413,20 +462,32 @@ function modeindex(m::ts,s::Integer,t::Integer)
 
 	# Nskip = sum(length(t_valid_range(m,si)) for si=m.smin:s-1)
 
-	if min(-tmin, tmax, s - 1) >= smin
-		Nskip += -(-1+smin-min(-1+s,tmax,-tmin))*(1+smin+min(-1+s,tmax,-tmin))
-	end
-	if min(-tmin, s - 1) >= max(smin, max(tmax + 1, -tmax))
-		Nskip += div(-((-1 + max(smin, -tmax, 1 + tmax) - min(-1 + s, -tmin))*(2 + 2*tmax + max(smin, -tmax, 1 + tmax) + min(-1 + s, -tmin))),2)
-	end
-	if min(tmax, s - 1) >= max(smin, -tmin + 1, tmin)
-		Nskip += div(-((-1 + max(smin, 1 - tmin, tmin) - min(-1 + s, tmax))*(2 - 2*tmin + max(smin, 1 - tmin, tmin) + min(-1 + s, tmax))),2)
-	end
-	if s - 1 >= max(-tmin + 1, tmax + 1, smin)
-		Nskip += (1 + tmax - tmin)*(s - max(smin, 1 + tmax, 1 - tmin))
+	up = min(-tmin, tmax, s - 1)
+	lo = smin
+	if up >= lo
+		Nskip += -(-1 + lo - up)*(1 + lo + up)
 	end
 
-	Nskip + searchsortedfirst(t_valid_range(m,s),t)
+	up = min(-tmin, s - 1)
+	lo = max(smin, tmax + 1, -tmax)
+	if up >= lo
+		Nskip += div(-((-1 + lo - up)*(2 + 2tmax + lo + up)),2)
+	end
+
+	up = min(tmax, s - 1)
+	lo = max(smin, -tmin + 1, tmin)
+	if up >= lo
+		Nskip += div(-((-1 + lo - up)*(2 - 2tmin + lo + up)),2)
+	end
+
+	up = s - 1
+	lo = max(-tmin + 1, tmax + 1, smin)
+	if up >= lo
+		Nskip += (1 + tmax - tmin)*(1 - lo + up)
+	end
+
+	ind_t = t - first(t_valid_range(m,s)) + 1
+	Nskip + ind_t
 end
 
 function modeindex(m::ts,s::Integer,t::AbstractUnitRange{<:Integer})
@@ -438,26 +499,42 @@ end
 modeindex(m::ts,s::Integer,::Colon) = modeindex(m,s,t_valid_range(m,s))
 
 function modeindex(m::s′s,s′::Integer,s::Integer)
-	(s′,s) ∉ m && throw(ModeMissingError(s′,s,m))
+	# Check if s and s′ supplied correspond to valid modes
+	check_if_non_negative(s)
+	check_if_non_negative(s′)
+	check_if_mode_present(m,s′,s)
+
 	Nskip = 0
 
 	smin,smax,spmin,spmax = m.smin,m.smax,m.s′min,m.s′max
 	dsmax = m.Δs_max
 
-	if min(s - 1, spmax - dsmax) >= max(smin, spmin + dsmax)
-		Nskip += (1 + 2*dsmax)*(1 - max(smin, dsmax + spmin) + min(-1 + s, -dsmax + spmax))
-	end
-	if min(s - 1, spmax + dsmax) >= max(smin, spmin + dsmax, spmax - dsmax + 1)
-		Nskip += div((-1 + max(smin, 1 - dsmax + spmax, dsmax + spmin) - min(-1 + s, dsmax + spmax))*(-2*(1 + dsmax + spmax) + max(smin, 1 - dsmax + spmax, dsmax + spmin) + min(-1 + s, dsmax + spmax)),2)
-	end
-	if min(s - 1, spmin + dsmax - 1, spmax - dsmax) >= max(smin, spmin - dsmax)
-		Nskip += div(-((-1 + max(smin, -dsmax + spmin) - min(-1 + s, -dsmax + spmax, -1 + dsmax + spmin))*(2 + 2*dsmax - 2*spmin + max(smin, -dsmax + spmin) + min(-1 + s, -dsmax + spmax, -1 + dsmax + spmin))),2)
-	end
-	if min(s - 1, spmin + dsmax - 1) >= max(smin, spmax - dsmax + 1)
-		Nskip += (1 + spmax - spmin)*(1 - max(smin, 1 - dsmax + spmax) + min(-1 + s, -1 + dsmax + spmin))
+	up = min(s - 1, spmax - dsmax)
+	lo = max(smin, spmin + dsmax)
+	if up >= lo
+		Nskip += (1 + 2dsmax)*(1 - lo + up)
 	end
 
-	Nskip + searchsortedfirst(s′_valid_range(m,s),s′)
+	up = min(s - 1, spmax + dsmax)
+	lo = max(smin, spmin + dsmax, spmax - dsmax + 1)
+	if up >= lo
+		Nskip += div((-1 + lo - up)*(-2*(1 + dsmax + spmax) + lo + up),2)
+	end
+
+	up = min(s - 1, spmin + dsmax - 1, spmax - dsmax)
+	lo = max(smin, spmin - dsmax)
+	if up >= lo
+		Nskip += div(-((-1 + lo - up)*(2 + 2dsmax - 2spmin + lo + up)),2)
+	end
+
+	up = min(s - 1, spmin + dsmax - 1)
+	lo = max(smin, spmax - dsmax + 1)
+	if up >= lo
+		Nskip += (1 + spmax - spmin)*(1 - lo + up)
+	end
+
+	ind_s′ = s′ - first(s′_valid_range(m,s)) + 1
+	Nskip + ind_s′
 end
 
 function modeindex(m::s′s,s′::AbstractUnitRange{<:Integer},s::Integer)
