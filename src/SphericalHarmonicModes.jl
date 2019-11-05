@@ -36,6 +36,9 @@ struct InvalidModeError{Ts<:Integer,Tt<:Integer} <: Exception
 	t :: Tt
 end
 
+struct NonContiguousError <: Exception
+end
+
 Base.showerror(io::IO, e::tRangeError) = print(io," t = ", e.t,
 		" does not satisfy ",-e.smax," ⩽ t ⩽ ",e.smax)
 
@@ -55,6 +58,9 @@ Base.showerror(io::IO, e::NegativeDegreeError) = print(io,"s = ",e.s,
 
 Base.showerror(io::IO, e::InvalidModeError) = print(io,"(s=",e.s,",t=",e.t,")",
 	" is not a valid mode. |t| <= s is not satisfied")
+
+Base.showerror(io::IO, e::NonContiguousError) = print(io,
+	"ModeRanges only support contiguous indexing")
 
 function check_if_non_negative(s::Integer)
 	s >= 0 || throw(NegativeDegreeError(s))
@@ -546,6 +552,32 @@ end
 modeindex(m::s′s,::Colon,s::Integer) = modeindex(m,s′_valid_range(m,s),s)
 
 modeindex(m::ModeRange,T::Tuple{<:Any,<:Any}) = modeindex(m,T...)
+modeindex(m::ModeRange,T::Vararg{<:Any,2}) = modeindex(m,T...)
+modeindex(m::ModeRange,::Colon,::Colon) = Base.OneTo(length(m))
+
+# modeindex with two ranges works only if the values are contiguously stored in the iterator
+# If the values are contiguous then it returns modeindex(smin,tmin):modeindex(smax,tmax)
+# All (s,t) values need to be present in the iterator
+# Some invalid values might be caught by internal modeindex calls
+function modeindex(m::ModeRange,s_range::AbstractUnitRange,t_range::AbstractUnitRange)
+	tmin,tmax = extrema(t_range)
+	smin,smax = extrema(s_range)
+	firstind = modeindex(m,smin,tmin)
+	lastind = modeindex(m,smax,tmax)
+
+	if (lastind - firstind + 1) != length(s_range)*length(t_range)
+		throw(NonContiguousError())
+	end
+	firstind:lastind
+end
+
+# Return the range of indices of m containing the entirety of mpart
+# If mpart is contiguously stored in m then collect(m)[modeindex(m,mpart)] == collect(mpart)
+function modeindex(m::T,mpart::T) where {T<:ModeRange}
+	mode_start = first(mpart)
+	mode_end = last(mpart)
+	modeindex(m,mode_start):modeindex(m,mode_end)
+end
 
 # Display the iterators
 

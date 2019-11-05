@@ -1,4 +1,6 @@
 using Test,SphericalHarmonicModes
+import SphericalHarmonicModes: NonContiguousError, ModeMissingError, InvalidModeError,
+NegativeDegreeError, tRangeError
 
 @testset "constructors" begin
 
@@ -192,6 +194,72 @@ end
 				end
 			end
 		end
+	end
+
+	@testset "s and t range" begin
+	    @testset "st" begin
+	        m=st(0:3,-2:1)
+	        sr = 1:3; tr = 0:1
+	        ind1 = modeindex(m,minimum(sr),minimum(tr))
+	        ind2 = modeindex(m,maximum(sr),maximum(tr))
+	        @test modeindex(m,sr,tr) == ind1:ind2
+	        @test_throws ModeMissingError modeindex(m,0:5,0:2)
+	        @test_throws NonContiguousError modeindex(m,1:3,-1:0)
+	        @test_throws InvalidModeError modeindex(m,s_range(m),t_range(m))
+	    end
+	    @testset "ts" begin
+	        m=ts(0:5,-2:1)
+	        sr = 2:5; tr = -2:1
+	        ind1 = modeindex(m,minimum(sr),minimum(tr))
+	        ind2 = modeindex(m,maximum(sr),maximum(tr))
+	        @test modeindex(m,sr,tr) == ind1:ind2
+	        @test_throws ModeMissingError modeindex(m,0:5,0:2)
+	        @test_throws NonContiguousError modeindex(m,4:5,0:1)
+	        @test_throws InvalidModeError modeindex(m,s_range(m),t_range(m))
+	    end
+	    @testset "s′s" begin
+	        m=s′s(0:3,2,0:3);
+	        s′r = 0:2; sr = 0:1;
+	        ind1 = modeindex(m,minimum(s′r),minimum(sr))
+	        ind2 = modeindex(m,maximum(s′r),maximum(sr))
+	        @test modeindex(m,s′r,sr) == ind1:ind2
+	        @test_throws ModeMissingError modeindex(m,0:4,0:4)
+	        @test_throws NonContiguousError modeindex(m,1:3,1:2)
+	        @test_throws NonContiguousError modeindex(m,s′_range(m),s_range(m))
+	    end
+	end
+
+	@testset "ModeRange" begin
+	    @testset "st" begin
+	        m=st(0:2)
+	        # Non-Continguous
+	        mpart=st(0:1,0:1)
+	        @test modeindex(m,mpart) == 4:7
+	        # Contiguous
+	        mpart=st(0:2,0:0)
+	        @test modeindex(m,mpart) == 4:6
+	        @test collect(m)[modeindex(m,mpart)] == collect(mpart)
+	    end
+	    @testset "ts" begin
+	        m=ts(0:2,-1:1)
+	        # Non-Continguous
+	        mpart=ts(1:2,0:1)
+	        @test modeindex(m,mpart) == 3:7
+	        # Contiguous
+	        mpart=ts(1:2,-1:1)
+	        @test modeindex(m,mpart) == 2:7
+	        @test collect(m)[modeindex(m,mpart)] == collect(mpart)
+	    end
+	    @testset "s′s" begin
+	        m=s′s(0:2,2);
+	        # Non-Continguous
+	        mpart=s′s(1:2,1,1:2)
+	        @test modeindex(m,mpart) == 5:10
+	        # Contiguous
+	        mpart=s′s(1:2,2)
+	        @test modeindex(m,mpart) == 4:12
+	        @test collect(m)[modeindex(m,mpart)] == collect(mpart)
+	    end
 	end
 end
 
