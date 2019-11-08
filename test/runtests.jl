@@ -20,11 +20,11 @@ NegativeDegreeError, tRangeError, SHModeRange
 		@test ML(2) == ML(2,2,-2,2)
 	end
 
-	@testset "L′L " begin
+	@testset "L₂L₁ " begin
 		Δs_max = rand(1:3)
 		l_range = rand(1:3):rand(4:10)
-		@test L′L(l_range,Δs_max) == L′L(l_range,LM(0:Δs_max,0))
-		@test L′L(l_range,Δs_max) == L′L(l_range,ML(0:Δs_max,0))
+		@test L₂L₁(l_range,Δs_max) == L₂L₁(l_range,LM(0:Δs_max,0))
+		@test L₂L₁(l_range,Δs_max) == L₂L₁(l_range,ML(0:Δs_max,0))
 	end
 end
 
@@ -66,20 +66,20 @@ end
 		end
 	end
 
-	@testset "L′L default s′minmax" begin
+	@testset "L₂L₁ default s′minmax" begin
 		for smin=0:s_cutoff,smax=smin:s_cutoff,Δs_max=0:s_cutoff
-			mr = L′L(smin,smax,Δs_max)
-			@test length(mr) == sum(length(l′_range(mr,l)) for l in l_range(mr))			
+			mr = L₂L₁(smin,smax,Δs_max)
+			@test length(mr) == sum(length(l₂_range(mr,l₁)) for l₁ in l₁_range(mr))			
 		end
 	end
 
-	@testset "L′L all" begin
+	@testset "L₂L₁ all" begin
 		for smin=0:s_cutoff,smax=smin:s_cutoff,Δs_max=0:s_cutoff
-			mr = L′L(smin,smax,Δs_max)
+			mr = L₂L₁(smin,smax,Δs_max)
 			for spmin=0:smax+Δs_max,spmax=spmin:smax+Δs_max
-				m = L′L(smin,smax,Δs_max,spmin,spmax)
+				m = L₂L₁(smin,smax,Δs_max,spmin,spmax)
 				@test begin
-					res = length(mr) == sum(length(l′_range(mr,l)) for l in l_range(mr))
+					res = length(mr) == sum(length(l₂_range(mr,l₁)) for l₁ in l₁_range(mr))
 					if !res
 						println(mr)
 					end
@@ -121,18 +121,18 @@ end
 		N_skip + searchsortedfirst(l_range(m,t),s)
 	end
 
-	function modeindex2(m::L′L,s′::Integer,s::Integer)
+	function modeindex2(m::L₂L₁,s′::Integer,s::Integer)
 		N_skip = 0
-		for si in m.l_min:s-1
-			N_skip += length(l′_range(m,si))
+		for si in m.l₁_min:s-1
+			N_skip += length(l₂_range(m,si))
 		end
 
-		N_skip + searchsortedfirst(l′_range(m,s),s′)
+		N_skip + searchsortedfirst(l₂_range(m,s),s′)
 	end
 
 	modeindex2(m::SHModeRange,(s,t)::Tuple) = modeindex(m,s,t)
 
-	s_cutoff = 5
+	s_cutoff = 1
 	@testset "LM" begin
 		for smin=0:s_cutoff,smax=smin:s_cutoff,tmin=-smax:smax,tmax=tmin:smax
 			m1 = LM(smin,smax,tmin,tmax)
@@ -167,11 +167,11 @@ end
 		end
 	end
 
-	@testset "L′L" begin
+	@testset "L₂L₁" begin
 		for smin=0:s_cutoff,smax=smin:s_cutoff,
 			Δs_max=0:s_cutoff,s′min=0:s_cutoff,s′max=s′min:s_cutoff
 
-			m3 = L′L(smin,smax,Δs_max,s′min,s′max)
+			m3 = L₂L₁(smin,smax,Δs_max,s′min,s′max)
 			for (s′,s) in m3
 				@test begin 
 					res = modeindex(m3,s′,s) == modeindex2(m3,s′,s)
@@ -182,8 +182,8 @@ end
 				end
 			end
 			m3c = collect(m3)
-			for s in l_range(m3), s′1 in l′_range(m3,s), 
-				s′2 in l′_range(m3,s)
+			for s in l₁_range(m3), s′1 in l₂_range(m3,s), 
+				s′2 in l₂_range(m3,s)
 
 				s′min,s′max = minmax(s′1,s′2)
 				@test begin 
@@ -198,7 +198,7 @@ end
 		end
 	end
 
-	@testset "l, l′ and m ranges" begin
+	@testset "ranges" begin
 	    @testset "LM" begin
 	        m=LM(0:3,-2:1)
 	        sr = 1:3; tr = 0:1
@@ -219,15 +219,15 @@ end
 	        @test_throws NonContiguousError modeindex(m,4:5,0:1)
 	        @test_throws InvalidModeError modeindex(m,l_range(m),m_range(m))
 	    end
-	    @testset "L′L" begin
-	        m=L′L(0:3,2,0:3);
+	    @testset "L₂L₁" begin
+	        m=L₂L₁(0:3,2,0:3);
 	        s′r = 0:2; sr = 0:1;
 	        ind1 = modeindex(m,minimum(s′r),minimum(sr))
 	        ind2 = modeindex(m,maximum(s′r),maximum(sr))
 	        @test modeindex(m,s′r,sr) == ind1:ind2
 	        @test_throws ModeMissingError modeindex(m,0:4,0:4)
 	        @test_throws NonContiguousError modeindex(m,1:3,1:2)
-	        @test_throws NonContiguousError modeindex(m,l′_range(m),l_range(m))
+	        @test_throws NonContiguousError modeindex(m,l₂_range(m),l₁_range(m))
 	    end
 	end
 
@@ -252,13 +252,13 @@ end
 	        @test modeindex(m,mpart) == 2:7
 	        @test collect(m)[modeindex(m,mpart)] == collect(mpart)
 	    end
-	    @testset "L′L" begin
-	        m=L′L(0:2,2);
+	    @testset "L₂L₁" begin
+	        m=L₂L₁(0:2,2);
 	        # Non-Continguous
-	        mpart=L′L(1:2,1,1:2)
+	        mpart=L₂L₁(1:2,1,1:2)
 	        @test modeindex(m,mpart) == 5:10
 	        # Contiguous
-	        mpart=L′L(1:2,2)
+	        mpart=L₂L₁(1:2,2)
 	        @test modeindex(m,mpart) == 4:12
 	        @test collect(m)[modeindex(m,mpart)] == collect(mpart)
 	    end
@@ -276,8 +276,8 @@ end
 		@test last(collect(m2)) == last(m2)
 	end
 	
-	@testset "L′L" begin
-		m3 = L′L(rand(1:3):rand(4:10),rand(1:5))
+	@testset "L₂L₁" begin
+		m3 = L₂L₁(rand(1:3):rand(4:10),rand(1:5))
 		@test last(collect(m3)) == last(m3)
 	end
 end

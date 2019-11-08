@@ -5,7 +5,7 @@
 
 This package provides two iterators that are relevant in the context of spherical harmonics. 
 1. An iterator to loop over spherical harmonic modes denoted by `(l,m)`, where `l` is the angular degree and `m` is the azimuthal order.
-2. An iterator to loop over pairs of spherical harmonic degrees `l` and `l′`, where `|l-Δl| <= l′<= l+Δl`. The iterator generates pairs of `(l′,l)` for a specified range of `l` and all `Δl` that satisfy `0 ⩽ Δl ⩽ Δl_max` for a specified `Δl_max`. Optionally a bound on `l′` may be specified. Note that the suffix character in `l′` is a `\prime` and not a single quote.
+2. An iterator to loop over pairs of spherical harmonic degrees `l₁` and `l₂`, where `|l₁-Δl| <= l₂ <= l₁+Δl`. The iterator generates pairs of `(l₂,l₁)` for a specified range of `l₁` and all `Δl` that satisfy `0 ⩽ Δl ⩽ Δl_max` for a specified `Δl_max`. Optionally a bound on `l₂` may be specified.
 
 ## Getting Started
 
@@ -74,14 +74,14 @@ Spherical harmonic modes with l increasing faster than m
 (l_min = 2, l_max = 4, m_min = 0, m_max = 2)
 ```
 
-### Creating an (l′,l) iterator
+### Creating an (l₂,l₁) iterator
 
-This iterator can be created as `L′L(l_min,l_max,Δl_max,l′_min,l′_max)`, for example
+This iterator can be created as `L₂L₁(l₁_min,l₁_max,Δl_max,l₂_min,l₂_max)`, for example
 
 ```julia
-julia> itr = L′L(1,3,2,2,4)
-Spherical harmonic modes (l′,l) where |l-Δl| ⩽ l′ ⩽ l+Δl for 0 ⩽ Δl ⩽ Δl_max, l_min ⩽ l ⩽ l_max, and l′_min ⩽ l′ ⩽ l′_max
-(2 ⩽ l′ ⩽ 4 and 1 ⩽ l ⩽ 3, with Δl_max = 2)
+julia> itr = L₂L₁(1,3,2,2,4)
+Spherical harmonic modes (l₂,l₁) where |l₁-Δl| ⩽ l₂ ⩽ l₁+Δl for 0 ⩽ Δl ⩽ Δl_max, l₁_min ⩽ l₁ ⩽ l₁_max, and l₂_min ⩽ l₂ ⩽ l₂_max
+(2 ⩽ l₂ ⩽ 4 and 1 ⩽ l₁ ⩽ 3, with Δl_max = 2)
 
 julia> collect(itr)
 8-element Array{Tuple{Int64,Int64},1}:
@@ -95,25 +95,25 @@ julia> collect(itr)
  (4, 3)
 ```
 
-The ranges of `l` and `l′` will be clipped to the maximal valid subset dictated by `Δl_max`. Several convenience constructors are available, such as 
+The ranges of `l₁` and `l₂` will be clipped to the maximal valid subset dictated by `Δl_max`. Several convenience constructors are available, such as 
 
 ```julia
-julia> itr = L′L(1,2,2) # all valid l′
-Spherical harmonic modes (l′,l) where |l-Δl| ⩽ l′ ⩽ l+Δl for 0 ⩽ Δl ⩽ Δl_max, l_min ⩽ l ⩽ l_max, and l′_min ⩽ l′ ⩽ l′_max
-(0 ⩽ l′ ⩽ 4 and 1 ⩽ l ⩽ 2, with Δl_max = 2)
+julia> itr = L₂L₁(1,2,2) # all valid l₂
+Spherical harmonic modes (l₂,l₁) where |l₁-Δl| ⩽ l₂ ⩽ l₁+Δl for 0 ⩽ Δl ⩽ Δl_max, l₁_min ⩽ l₁ ⩽ l₁_max, and l₂_min ⩽ l₂ ⩽ l₂_max
+(0 ⩽ l₂ ⩽ 4 and 1 ⩽ l₁ ⩽ 2, with Δl_max = 2)
 
-julia> L′L(1:2,2) == L′L(1,2,2) # the range in l can be specified as a UnitRange
+julia> L₂L₁(1:2,2) == L₂L₁(1,2,2) # the range in l₁ can be specified as a UnitRange
 true
 
-julia> itr = L′L(1:2,2,2) # all valid l′ that lie above the lower cutoff
-Spherical harmonic modes (l′,l) where |l-Δl| ⩽ l′ ⩽ l+Δl for 0 ⩽ Δl ⩽ Δl_max, l_min ⩽ l ⩽ l_max, and l′_min ⩽ l′ ⩽ l′_max
-(2 ⩽ l′ ⩽ 4 and 1 ⩽ l ⩽ 2, with Δl_max = 2)
+julia> itr = L₂L₁(1:2,2,2) # all valid l₂ that lie above the lower cutoff
+Spherical harmonic modes (l₂,l₁) where |l₁-Δl| ⩽ l₂ ⩽ l₁+Δl for 0 ⩽ Δl ⩽ Δl_max, l₁_min ⩽ l₁ ⩽ l₁_max, and l₂_min ⩽ l₂ ⩽ l₂_max
+(2 ⩽ l₂ ⩽ 4 and 1 ⩽ l₁ ⩽ 2, with Δl_max = 2)
 
-julia> itr = L′L(1:2,2,2,2) # all valid l′ in range
-Spherical harmonic modes (l′,l) where |l-Δl| ⩽ l′ ⩽ l+Δl for 0 ⩽ Δl ⩽ Δl_max, l_min ⩽ l ⩽ l_max, and l′_min ⩽ l′ ⩽ l′_max
-(2 ⩽ l′ ⩽ 2 and 1 ⩽ l ⩽ 2, with Δl_max = 2)
+julia> itr = L₂L₁(1:2,2,2,2) # all valid l₂ in range
+Spherical harmonic modes (l₂,l₁) where |l₁-Δl| ⩽ l₂ ⩽ l₁+Δl for 0 ⩽ Δl ⩽ Δl_max, l₁_min ⩽ l₁ ⩽ l₁_max, and l₂_min ⩽ l₂ ⩽ l₂_max
+(2 ⩽ l₂ ⩽ 2 and 1 ⩽ l₁ ⩽ 2, with Δl_max = 2)
 
-julia> L′L(1:2,2,2:2) == L′L(1:2,2,2,2) # the range in l′ can be specified as a UnitRange
+julia> L₂L₁(1:2,2,2:2) == L₂L₁(1:2,2,2,2) # the range in l₂ can be specified as a UnitRange
 true
 ```
 
@@ -166,19 +166,19 @@ This is also evaluated in `O(1)` time.
 ```julia
 julia> itr = ML(0,20000);
 
-julia> @btime modeindex($m,(20000,20000))
+julia> @btime modeindex($itr,(20000,20000))
   0.029 ns (0 allocations: 0 bytes)
 400040001
 
 julia> itr = LM(0,20000);
 
-julia> @btime modeindex($m,(20000,20000))
+julia> @btime modeindex($itr,(20000,20000))
   0.029 ns (0 allocations: 0 bytes)
 400040001
 
-julia> itr = L′L(1:100,100);
+julia> itr = L₂L₁(1:100,100);
 
-julia> @btime modeindex($m,(100,100))
+julia> @btime modeindex($itr,(100,100))
   0.029 ns (0 allocations: 0 bytes)
 15050
 ```

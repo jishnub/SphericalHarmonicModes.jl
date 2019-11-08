@@ -1,7 +1,7 @@
 module SphericalHarmonicModes
 
-export LM,ML,L′L
-export modeindex,l_range,m_range,l′_range
+export LM,ML,L₂L₁
+export modeindex,l_range,m_range,l₂_range,l₁_range
 
 abstract type ModeRange end
 abstract type SHModeRange <: ModeRange end
@@ -35,29 +35,29 @@ struct ML <: SHModeRange
 	end
 end
 
-struct L′L <: ModeProduct
-	l_min :: Int
-	l_max :: Int
+struct L₂L₁ <: ModeProduct
+	l₁_min :: Int
+	l₁_max :: Int
 	Δl_max :: Int
-	l′_min :: Int
-	l′_max :: Int
+	l₂_min :: Int
+	l₂_max :: Int
 
-	function L′L(l_min::Integer,l_max::Integer,
-		Δl_max::Integer,l′_min::Integer,l′_max::Integer)
+	function L₂L₁(l_min::Integer,l_max::Integer,
+		Δl_max::Integer,l₂_min::Integer,l₂_max::Integer)
 
-		map(check_if_non_negative,(l_min,l_max,Δl_max,l′_min,l′_max))
+		map(check_if_non_negative,(l_min,l_max,Δl_max,l₂_min,l₂_max))
 
 		# Alter the ranges if necessary
-		l_min = max(l_min,l′_min-Δl_max,0)
-		l′_min = max(l_min-Δl_max,0,l′_min)
-		l′_max = max(min(max(l_max+Δl_max,0),l′_max),l′_min)
-		l_max = min(l_max,l′_max+Δl_max)
+		l_min = max(l_min,l₂_min-Δl_max,0)
+		l₂_min = max(l_min-Δl_max,0,l₂_min)
+		l₂_max = max(min(max(l_max+Δl_max,0),l₂_max),l₂_min)
+		l_max = min(l_max,l₂_max+Δl_max)
 
-		new(l_min,l_max,Δl_max,l′_min,l′_max)
+		new(l_min,l_max,Δl_max,l₂_min,l₂_max)
 	end
 end
 
-Base.eltype(::L′L) = Tuple{Int,Int}
+Base.eltype(::L₂L₁) = Tuple{Int,Int}
 
 # Throw errors if values are invalid
 struct OrderError{T} <: Exception
@@ -98,8 +98,8 @@ Base.showerror(io::IO, e::ModeMissingError{<:SHModeRange}) =
 	print(io,"Mode with (l=",e.firstmode,",m=",e.secondmode,")",
 	" is not included in the range given by ",e.itr)
 
-Base.showerror(io::IO, e::ModeMissingError{L′L}) = 
-	print(io,"Mode with (l′=",e.firstmode,",l=",e.secondmode,")",
+Base.showerror(io::IO, e::ModeMissingError{L₂L₁}) = 
+	print(io,"Mode with (l₂=",e.firstmode,",l₁=",e.secondmode,")",
 	" is not included in the range given by ",e.itr)
 
 Base.showerror(io::IO, e::NegativeDegreeError) = print(io,"l = ",e.l,
@@ -159,39 +159,39 @@ end
 (::Type{T})(l_range::AbstractUnitRange{<:Integer}) where {T<:SHModeRange} = 
 	T(extrema(l_range)...)
 
-function L′L(l_min::Integer,l_max::Integer,Δl_max::Integer,
-	l′_min::Integer=max(l_min-Δl_max,0))
+function L₂L₁(l_min::Integer,l_max::Integer,Δl_max::Integer,
+	l₂_min::Integer=max(l_min-Δl_max,0))
 
-	L′L(l_min,l_max,Δl_max,l′_min,l_max+Δl_max)
+	L₂L₁(l_min,l_max,Δl_max,l₂_min,l_max+Δl_max)
 end
 
-L′L(l_min::Integer,l_max::Integer,mr::SHModeRange,args...) = L′L(l_min,l_max,mr.l_max,args...)
+L₂L₁(l_min::Integer,l_max::Integer,mr::SHModeRange,args...) = L₂L₁(l_min,l_max,mr.l_max,args...)
 
-L′L( l_range::AbstractUnitRange{<:Integer},Δl_max::Integer,
-	l′_range::AbstractUnitRange{<:Integer}) = 
-	L′L(extrema(l_range)...,Δl_max,extrema(l′_range)...)
+L₂L₁( l_range::AbstractUnitRange{<:Integer},Δl_max::Integer,
+	l₂_range::AbstractUnitRange{<:Integer}) = 
+	L₂L₁(extrema(l_range)...,Δl_max,extrema(l₂_range)...)
 
-L′L(l_min::Integer,l_max::Integer,Δl_max::Integer,
-	l′_range::AbstractUnitRange{<:Integer}) = 
-	L′L(l_min,l_max,Δl_max,extrema(l′_range)...)
+L₂L₁(l_min::Integer,l_max::Integer,Δl_max::Integer,
+	l₂_range::AbstractUnitRange{<:Integer}) = 
+	L₂L₁(l_min,l_max,Δl_max,extrema(l₂_range)...)
 
-L′L( l_range::AbstractUnitRange{<:Integer},Δl_max::Union{Integer,<:SHModeRange},
-	args...) = L′L(extrema(l_range)...,Δl_max,args...)
+L₂L₁( l_range::AbstractUnitRange{<:Integer},Δl_max::Union{Integer,<:SHModeRange},
+	args...) = L₂L₁(extrema(l_range)...,Δl_max,args...)
 
 # Get the ranges of the modes
 
 @inline l_range(mr::SHModeRange) = mr.l_min:mr.l_max
 @inline m_range(mr::SHModeRange) = mr.m_min:mr.m_max
 
-@inline l_range(mr::L′L) = mr.l_min:mr.l_max
-@inline l′_range(mr::L′L) = mr.l′_min:mr.l′_max
+@inline l₁_range(mr::L₂L₁) = mr.l₁_min:mr.l₁_max
+@inline l₂_range(mr::L₂L₁) = mr.l₂_min:mr.l₂_max
 
 @inline l_range(mr::SHModeRange,m::Integer) = max(abs(m),mr.l_min):mr.l_max
 
 @inline m_range(mr::SHModeRange,l::Integer) = max(-l,mr.m_min):min(l,mr.m_max)
 
-@inline function l′_range(mr::L′L,l::Integer)
-	max(l - mr.Δl_max,mr.l′_min):min(l + mr.Δl_max,mr.l′_max)
+@inline function l₂_range(mr::L₂L₁,l::Integer)
+	max(l - mr.Δl_max,mr.l₂_min):min(l + mr.Δl_max,mr.l₂_max)
 end
 
 function _length(mr::LM)
@@ -268,36 +268,36 @@ function _length(mr::ML)
 	return N
 end
 
-function _length(mr::L′L)
+function _length(mr::L₂L₁)
 
-	# Number of modes is given by count(l′_range(mr,l) for l in l_range(mr))
-	l_min,l_max,l′_min,l′_max = mr.l_min,mr.l_max,mr.l′_min,mr.l′_max
+	# Number of modes is given by count(l₂_range(mr,l) for l in l_range(mr))
+	l_min,l_max,l₂_min,l₂_max = mr.l₁_min,mr.l₁_max,mr.l₂_min,mr.l₂_max
 	Δl_max = mr.Δl_max
     
     N = 0
 
-    up = min(l_max, l′_max - Δl_max)
-    lo = max(l_min, l′_min + Δl_max)
+    up = min(l_max, l₂_max - Δl_max)
+    lo = max(l_min, l₂_min + Δl_max)
     if up >= lo
     	N += (1 + 2*Δl_max)*(1 - lo + up)
     end
 
-    up = min(l_max,l′_max + Δl_max)
-    lo = max(l_min, l′_min + Δl_max, l′_max - Δl_max + 1)
+    up = min(l_max,l₂_max + Δl_max)
+    lo = max(l_min, l₂_min + Δl_max, l₂_max - Δl_max + 1)
     if up >= lo
-    	N += div((-1 + lo - up)*(-2*(1 + Δl_max + l′_max) + lo + up),2)
+    	N += div((-1 + lo - up)*(-2*(1 + Δl_max + l₂_max) + lo + up),2)
     end
 
-    up = min(l_max, l′_min + Δl_max - 1, l′_max - Δl_max)
-    lo = max(l_min,l′_min - Δl_max)
+    up = min(l_max, l₂_min + Δl_max - 1, l₂_max - Δl_max)
+    lo = max(l_min,l₂_min - Δl_max)
     if up >= lo
-    	N += div(-((-1 + lo - up)*(2 + 2Δl_max - 2l′_min + lo + up)),2)
+    	N += div(-((-1 + lo - up)*(2 + 2Δl_max - 2l₂_min + lo + up)),2)
     end
 
-    up = min(l_max, l′_min + Δl_max - 1)
-    lo = max(l_min,l′_max - Δl_max + 1)
+    up = min(l_max, l₂_min + Δl_max - 1)
+    lo = max(l_min,l₂_max - Δl_max + 1)
     if up >= lo
-    	N += (1 + l′_max - l′_min)*(1 - lo + up)
+    	N += (1 + l₂_max - l₂_min)*(1 - lo + up)
     end
 
     return N
@@ -321,8 +321,8 @@ Base.lastindex(mr::ModeRange) = length(mr)
 @inline first_l(mr::ML) = mr.l_min
 @inline first_m(mr::ML) = first(m_range(mr,first_l(mr)))
 
-@inline first_l(mr::L′L) = max(mr.l_min,mr.l′_min-mr.Δl_max)
-@inline first_l′(mr::L′L) = first(l′_range(mr,first_l(mr)))
+@inline first_l₁(mr::L₂L₁) = max(mr.l₁_min,mr.l₂_min-mr.Δl_max)
+@inline first_l₂(mr::L₂L₁) = first(l₂_range(mr,first_l₁(mr)))
 
 function Base.iterate(mr::LM, state=((first_l(mr),first_m(mr)), 1))
 
@@ -362,24 +362,24 @@ function Base.iterate(mr::ML, state=((first_l(mr),first_m(mr)), 1))
 	return (l,m), ((next_l,next_m), count + 1)
 end
 
-function Base.iterate(mr::L′L,state=((first_l′(mr),first_l(mr)), 1))
+function Base.iterate(mr::L₂L₁,state=((first_l₂(mr),first_l₁(mr)), 1))
 
-	(l′,l),count = state
+	(l₂,l₁),count = state
 	if count > length(mr)
 		return nothing
 	end
 
-	l′_range_l = l′_range(mr,l)
+	l₂_range_l₁ = l₂_range(mr,l₁)
 
-	if l′ == last(l′_range_l)
-		next_l = l + 1
-		next_l′ = first(l′_range(mr,next_l))
+	if l₂ == last(l₂_range_l₁)
+		next_l₁ = l₁ + 1
+		next_l₂ = first(l₂_range(mr,next_l₁))
 	else
-		next_l = l
-		next_l′ = l′ + 1
+		next_l₁ = l₁
+		next_l₂ = l₂ + 1
 	end
 
-	return (l′,l),((next_l′,next_l),count+1)
+	return (l₂,l₁),((next_l₂,next_l₁),count+1)
 end
 
 function _in((l,m)::Tuple{<:Integer,<:Integer},mr::ML)
@@ -392,17 +392,17 @@ function _in((l,m)::Tuple{<:Integer,<:Integer},mr::LM)
 	(l in l_range(mr,m))
 end
 
-function _in((l′,l)::Tuple{<:Integer,<:Integer},mr::L′L)
-	(mr.l_min <= l <= mr.l_max) && 
-	(mr.l′_min <= l′ <= mr.l′_max) && 
-	(l′ in l′_range(mr,l))
+function _in((l₂,l₁)::Tuple{<:Integer,<:Integer},mr::L₂L₁)
+	(mr.l₁_min <= l₁ <= mr.l₁_max) && 
+	(mr.l₂_min <= l₂ <= mr.l₂_max) && 
+	(l₂ in l₂_range(mr,l₁))
 end
 
 Base.in(T::Tuple,mr::ModeRange) = _in(T,mr)
 
 Base.last(mr::LM) = (last(l_range(mr,mr.m_max)),mr.m_max)
 Base.last(mr::ML) = (mr.l_max,last(m_range(mr,mr.m_max)))
-Base.last(mr::L′L) = (last(l′_range(mr,mr.l_max)), mr.l_max)
+Base.last(mr::L₂L₁) = (last(l₂_range(mr,mr.l₁_max)), mr.l₁_max)
 
 function modeindex(mr::LM,l::Integer,m::Integer)
 	# Check if the l and m supplied correspond to valid modes
@@ -502,52 +502,51 @@ end
 
 modeindex(mr::ML,l::Integer,::Colon) = modeindex(mr,l,m_range(mr,l))
 
-function modeindex(mr::L′L,l′::Integer,l::Integer)
-	# Check if l and l′ supplied correspond to valid modes
-	check_if_non_negative(l)
-	check_if_non_negative(l′)
-	check_if_mode_present(mr,l′,l)
+function modeindex(mr::L₂L₁,l₂::Integer,l₁::Integer)
+	# Check if l₁ and l₂ supplied correspond to valid modes
+	map(check_if_non_negative,(l₁,l₂))
+	check_if_mode_present(mr,l₂,l₁)
 
 	Nskip = 0
 
-	l_min,l_max,l′_min,l′_max = mr.l_min,mr.l_max,mr.l′_min,mr.l′_max
+	l_min,l_max,l₂_min,l₂_max = mr.l₁_min,mr.l₁_max,mr.l₂_min,mr.l₂_max
 	Δl_max = mr.Δl_max
 
-	up = min(l - 1, l′_max - Δl_max)
-	lo = max(l_min, l′_min + Δl_max)
+	up = min(l₁ - 1, l₂_max - Δl_max)
+	lo = max(l_min, l₂_min + Δl_max)
 	if up >= lo
 		Nskip += (1 + 2Δl_max)*(1 - lo + up)
 	end
 
-	up = min(l - 1, l′_max + Δl_max)
-	lo = max(l_min, l′_min + Δl_max, l′_max - Δl_max + 1)
+	up = min(l₁ - 1, l₂_max + Δl_max)
+	lo = max(l_min, l₂_min + Δl_max, l₂_max - Δl_max + 1)
 	if up >= lo
-		Nskip += div((-1 + lo - up)*(-2*(1 + Δl_max + l′_max) + lo + up),2)
+		Nskip += div((-1 + lo - up)*(-2*(1 + Δl_max + l₂_max) + lo + up),2)
 	end
 
-	up = min(l - 1, l′_min + Δl_max - 1, l′_max - Δl_max)
-	lo = max(l_min, l′_min - Δl_max)
+	up = min(l₁ - 1, l₂_min + Δl_max - 1, l₂_max - Δl_max)
+	lo = max(l_min, l₂_min - Δl_max)
 	if up >= lo
-		Nskip += div(-((-1 + lo - up)*(2 + 2Δl_max - 2l′_min + lo + up)),2)
+		Nskip += div(-((-1 + lo - up)*(2 + 2Δl_max - 2l₂_min + lo + up)),2)
 	end
 
-	up = min(l - 1, l′_min + Δl_max - 1)
-	lo = max(l_min, l′_max - Δl_max + 1)
+	up = min(l₁ - 1, l₂_min + Δl_max - 1)
+	lo = max(l_min, l₂_max - Δl_max + 1)
 	if up >= lo
-		Nskip += (1 + l′_max - l′_min)*(1 - lo + up)
+		Nskip += (1 + l₂_max - l₂_min)*(1 - lo + up)
 	end
 
-	ind_l′ = l′ - first(l′_range(mr,l)) + 1
-	Nskip + ind_l′
+	ind_l₂ = l₂ - first(l₂_range(mr,l₁)) + 1
+	Nskip + ind_l₂
 end
 
-function modeindex(mr::L′L,l′::AbstractUnitRange{<:Integer},l::Integer)
-	last(l′) in l′_range(mr,l) || throw(ModeMissingError(last(l′),l,mr))
-	start = modeindex(mr,first(l′),l)
-	start:start + length(l′) - 1
+function modeindex(mr::L₂L₁,l₂::AbstractUnitRange{<:Integer},l₁::Integer)
+	last(l₂) in l₂_range(mr,l₁) || throw(ModeMissingError(last(l₂),l₁,mr))
+	start = modeindex(mr,first(l₂),l₁)
+	start:start + length(l₂) - 1
 end
 
-modeindex(mr::L′L,::Colon,l::Integer) = modeindex(mr,l′_range(mr,l),l)
+modeindex(mr::L₂L₁,::Colon,l₁::Integer) = modeindex(mr,l₂_range(mr,l₁),l₁)
 
 modeindex(mr::ModeRange,T::Tuple{<:Any,<:Any}) = modeindex(mr,T...)
 modeindex(mr::ModeRange,T::Vararg{<:Any,2}) = modeindex(mr,T...)
@@ -583,9 +582,9 @@ function Base.show(io::IO, mr::SHModeRange)
 	print(io,"(l=",l_range(mr),",m=",m_range(mr),")")
 end
 
-function Base.show(io::IO, mr::L′L)
-	print(io,"(l=",l_range(mr),",Δl_max=",mr.Δl_max,
-		",l′=",l′_range(mr),")")
+function Base.show(io::IO, mr::L₂L₁)
+	print(io,"(l₁=",l₁_range(mr),",Δl_max=",mr.Δl_max,
+		",l₂=",l₂_range(mr),")")
 end
 
 function Base.show(io::IO, ::MIME"text/plain", mr::LM)
@@ -600,11 +599,11 @@ function Base.show(io::IO, ::MIME"text/plain", mr::ML)
 		", m_min = ",mr.m_min,", m_max = ",mr.m_max,")")
 end
 
-function Base.show(io::IO, ::MIME"text/plain", mr::L′L)
-	println("Spherical harmonic modes (l′,l) where |l-Δl| ⩽ l′ ⩽ l+Δl "*
-		"for 0 ⩽ Δl ⩽ Δl_max, l_min ⩽ l ⩽ l_max, and l′_min ⩽ l′ ⩽ l′_max")
-	print(io,"(",mr.l′_min," ⩽ l′ ⩽ ",mr.l′_max," and ",
-		mr.l_min," ⩽ l ⩽ ",mr.l_max,", with Δl_max = ",mr.Δl_max,")")
+function Base.show(io::IO, ::MIME"text/plain", mr::L₂L₁)
+	println("Spherical harmonic modes (l₂,l₁) where |l₁-Δl| ⩽ l₂ ⩽ l₁+Δl "*
+		"for 0 ⩽ Δl ⩽ Δl_max, l₁_min ⩽ l₁ ⩽ l₁_max, and l₂_min ⩽ l₂ ⩽ l₂_max")
+	print(io,"(",mr.l₂_min," ⩽ l₂ ⩽ ",mr.l₂_max," and ",
+		mr.l₁_min," ⩽ l₁ ⩽ ",mr.l₁_max,", with Δl_max = ",mr.Δl_max,")")
 end
 
 end # module
