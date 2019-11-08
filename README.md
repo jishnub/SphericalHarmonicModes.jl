@@ -1,10 +1,11 @@
 # SphericalHarmonicModes.jl
 
 [![Build Status](https://travis-ci.com/jishnub/SphericalHarmonicModes.jl.svg?branch=master)](https://travis-ci.com/jishnub/SphericalHarmonicModes.jl)
+[![Coverage Status](https://coveralls.io/repos/github/jishnub/SphericalHarmonicModes.jl/badge.svg?branch=master)](https://coveralls.io/github/jishnub/SphericalHarmonicModes.jl?branch=master)
 
 This package provides two iterators that are relevant in the context of spherical harmonics. 
-1. An iterator to loop over spherical harmonic modes, typically denoted by `(l,m)`. We use the notation `(s,t)` in this package.
-2. An iterator to loop over pairs of spherical harmonic degrees `s` and `s′`, where `|s-Δs|<=s′<=s+Δs`. The iterator generates pairs of `(s′,s)` for a specified range of `s` and all `Δs` that satisfy `0 ⩽ Δs ⩽ Δs_max` for a specified `Δs_max`. 
+1. An iterator to loop over spherical harmonic modes denoted by `(l,m)`, where `l` is the angular degree and `m` is the azimuthal order.
+2. An iterator to loop over pairs of spherical harmonic degrees `l` and `l′`, where `|l-Δl| <= l′<= l+Δl`. The iterator generates pairs of `(l′,l)` for a specified range of `l` and all `Δl` that satisfy `0 ⩽ Δl ⩽ Δl_max` for a specified `Δl_max`. Optionally a bound on `l′` may be specified. Note that the suffix character in `l′` is a `\prime` and not a single quote.
 
 ## Getting Started
 
@@ -17,18 +18,18 @@ julia> using SphericalHarmonicModes
 ```
 ## Usage
 
-### Creating a spherical harmonic iterator
+### Creating a spherical harmonic mode iterator
 
-There are two different orderings possible to iterate over spherical harmonic modes, with either `s` or `t` increasing faster than the other. They are denoted by `st` and `ts`, where --- going by the Julia convention of column-major arrays --- the first index increases faster than the second. Irrespective of which ordering is chosen, the modes are always returned as `(s,t)`.
+There are two different orderings possible to iterate over spherical harmonic modes, with either `l` or `m` increasing faster than the other. They are denoted by `LM` and `ML`, where --- going by the Julia convention of column-major arrays --- the first index increases faster than the second. Irrespective of which ordering is chosen, the modes are always returned as `(l,m)` when the iterators are looped over.
 
-Both the iterators are created using the general syntax `m(smin,smax,tmin,tmax)` where `m` can be `st` or `ts`. To create an iterator with `t` increasing faster than `s`:
+Both the iterators are created using the general syntax `itr(l_min,l_max,m_min,m_max)` where `itr` can be `LM` or `ML`. To create an iterator with `m` increasing faster than `l`:
 
 ```julia
-julia> m=ts(0,1,-1,1)
-Spherical harmonic modes with t increasing faster than s
-smin = 0, smax = 1, tmin = -1, tmax = 1
+julia> itr = ML(0,1,-1,1)
+Spherical harmonic modes with m increasing faster than l
+(l_min = 0, l_max = 1, m_min = -1, m_max = 1)
 
-julia> collect(m)
+julia> collect(itr)
 4-element Array{Tuple{Int64,Int64},1}:
  (0, 0) 
  (1, -1)
@@ -36,14 +37,14 @@ julia> collect(m)
  (1, 1)
 ```
 
-To create an iterator with `s` increasing faster than `t`:
+To create an iterator with `l` increasing faster than `m`:
 
 ```julia
-julia> m=st(0,1,-1,1)
-Spherical harmonic modes with s increasing faster than t
-smin = 0, smax = 1, tmin = -1, tmax = 1
+julia> itr = LM(0,1,-1,1)
+Spherical harmonic modes with l increasing faster than m
+(l_min = 0, l_max = 1, m_min = -1, m_max = 1)
 
-julia> collect(m)
+julia> collect(itr)
 4-element Array{Tuple{Int64,Int64},1}:
  (1, -1)
  (0, 0) 
@@ -51,63 +52,68 @@ julia> collect(m)
  (1, 1)
  ```
 
- Special constructors to include all `t`s are available for convenience.
+ Special constructors to include all `m`'s are available for convenience.
 
 ```julia
-julia> st(2)
-Spherical harmonic modes with s increasing faster than t
-smin = 2, smax = 2, tmin = -2, tmax = 2
+julia> LM(2) # only one l, and all valid m for that l
+Spherical harmonic modes with l increasing faster than m
+(l_min = 2, l_max = 2, m_min = -2, m_max = 2)
 
-julia> st(2,4)
-Spherical harmonic modes with s increasing faster than t
-smin = 2, smax = 4, tmin = -4, tmax = 4
+julia> LM(2,4) # a range in l, and all valid m for each l
+Spherical harmonic modes with l increasing faster than m
+(l_min = 2, l_max = 4, m_min = -4, m_max = 4)
 
-julia> st(2:4)
-Spherical harmonic modes with s increasing faster than t
-smin = 2, smax = 4, tmin = -4, tmax = 4
+julia> LM(2:4) == LM(2,4) # can specify the range as a UnitRange
+true
 ```
 
- You can also choose a range of `t`'s.
+ You can also choose a range of `m`'s.
 ```julia
-julia> st(2:4,0:2)
-Spherical harmonic modes with s increasing faster than t
-smin = 2, smax = 4, tmin = 0, tmax = 2
+julia> LM(2:4,0:2) # a range in l, and all valid m in range for each l
+Spherical harmonic modes with l increasing faster than m
+(l_min = 2, l_max = 4, m_min = 0, m_max = 2)
 ```
 
-### Creating an (s',s) iterator
+### Creating an (l′,l) iterator
 
-This iterator can be created as `s′s(smin,smax,Δs_max,s′min,s′max)`, for example
+This iterator can be created as `L′L(l_min,l_max,Δl_max,l′_min,l′_max)`, for example
 
 ```julia
-julia> m=s′s(1,2,2,1,1)
-Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs for 0 ⩽ Δs ⩽ Δs_max, and s′min ⩽ s′ ⩽ s′max
-1 ⩽ s ⩽ 2, Δs_max = 2, and 1 ⩽ s′ ⩽ 1
+julia> itr = L′L(1,3,2,2,4)
+Spherical harmonic modes (l′,l) where |l-Δl| ⩽ l′ ⩽ l+Δl for 0 ⩽ Δl ⩽ Δl_max, l_min ⩽ l ⩽ l_max, and l′_min ⩽ l′ ⩽ l′_max
+(2 ⩽ l′ ⩽ 4 and 1 ⩽ l ⩽ 3, with Δl_max = 2)
 
-julia> collect(m)
-2-element Array{Tuple{Int64,Int64},1}:
- (1, 1)
- (1, 2)
+julia> collect(itr)
+8-element Array{Tuple{Int64,Int64},1}:
+ (2, 1)
+ (3, 1)
+ (2, 2)
+ (3, 2)
+ (4, 2)
+ (2, 3)
+ (3, 3)
+ (4, 3)
 ```
 
-The ranges of `s` and `s′` will be clipped to the maximal valid subset based on `Δs_max`. Several convenience constructors are available, such as 
+The ranges of `l` and `l′` will be clipped to the maximal valid subset dictated by `Δl_max`. Several convenience constructors are available, such as 
 
 ```julia
-julia> m=s′s(1,2,2)
-Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs for 0 ⩽ Δs ⩽ Δs_max, and s′min ⩽ s′ ⩽ s′max
-1 ⩽ s ⩽ 2, Δs_max = 2, and 0 ⩽ s′ ⩽ 4
+julia> itr = L′L(1,2,2) # all valid l′
+Spherical harmonic modes (l′,l) where |l-Δl| ⩽ l′ ⩽ l+Δl for 0 ⩽ Δl ⩽ Δl_max, l_min ⩽ l ⩽ l_max, and l′_min ⩽ l′ ⩽ l′_max
+(0 ⩽ l′ ⩽ 4 and 1 ⩽ l ⩽ 2, with Δl_max = 2)
 
-julia> s′s(1:2,2) == s′s(1,2,2)
+julia> L′L(1:2,2) == L′L(1,2,2) # the range in l can be specified as a UnitRange
 true
 
-julia> m=s′s(1:2,2,2)
-Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs for 0 ⩽ Δs ⩽ Δs_max, and s′min ⩽ s′ ⩽ s′max
-1 ⩽ s ⩽ 2, Δs_max = 2, and 2 ⩽ s′ ⩽ 4
+julia> itr = L′L(1:2,2,2) # all valid l′ that lie above the lower cutoff
+Spherical harmonic modes (l′,l) where |l-Δl| ⩽ l′ ⩽ l+Δl for 0 ⩽ Δl ⩽ Δl_max, l_min ⩽ l ⩽ l_max, and l′_min ⩽ l′ ⩽ l′_max
+(2 ⩽ l′ ⩽ 4 and 1 ⩽ l ⩽ 2, with Δl_max = 2)
 
-julia> m=s′s(1:2,2,2,2)
-Spherical harmonic modes (s′,s) where |s-Δs| ⩽ s′ ⩽ s+Δs for 0 ⩽ Δs ⩽ Δs_max, and s′min ⩽ s′ ⩽ s′max
-1 ⩽ s ⩽ 2, Δs_max = 2, and 2 ⩽ s′ ⩽ 2
+julia> itr = L′L(1:2,2,2,2) # all valid l′ in range
+Spherical harmonic modes (l′,l) where |l-Δl| ⩽ l′ ⩽ l+Δl for 0 ⩽ Δl ⩽ Δl_max, l_min ⩽ l ⩽ l_max, and l′_min ⩽ l′ ⩽ l′_max
+(2 ⩽ l′ ⩽ 2 and 1 ⩽ l ⩽ 2, with Δl_max = 2)
 
-julia> s′s(1:2,2,2:2) == s′s(1:2,2,2,2)
+julia> L′L(1:2,2,2:2) == L′L(1:2,2,2,2) # the range in l′ can be specified as a UnitRange
 true
 ```
 
@@ -116,9 +122,9 @@ true
  The length of an iterator can be computed in `O(1)` time.
  
 ```julia
-julia> m=st(0,20000000,-1000000,2000);
+julia> itr = LM(0,20000000,-1000000,2000);
 
-julia> @btime length($m)
+julia> @btime length($itr)
   5.819 ns (0 allocations: 0 bytes)
 19540018501001
 ```
@@ -126,18 +132,18 @@ julia> @btime length($m)
 It is easy to check whether a mode is present in the iterator. This can also be checked in `O(1)` time.
 
 ```julia
-julia> m=st(0,20000000,-1000000,2000);
+julia> itr = LM(0,20000000,-1000000,2000);
 
-julia> @btime (1000,1000) in $m
+julia> @btime (1000,1000) in $itr
   0.029 ns (0 allocations: 0 bytes)
 true
 ```
 
 The index at which a mode is present can be checked using `modeindex`. For example
 ```julia
-julia> m=ts(0,2,-1,2);
+julia> itr = ML(0,2,-1,2);
 
-julia> collect(m)
+julia> collect(itr)
 8-element Array{Tuple{Int64,Int64},1}:
  (0, 0) 
  (1, -1)
@@ -148,29 +154,29 @@ julia> collect(m)
  (2, 1) 
  (2, 2) 
 
-julia> modeindex(m,(1,0))
+julia> modeindex(itr,(1,0))
 3
 
-julia> modeindex(m,(2,2))
+julia> modeindex(itr,(2,2))
 8
 ```
 
 This is also evaluated in `O(1)` time.
 
 ```julia
-julia> m=ts(0,20000);
+julia> itr = ML(0,20000);
 
 julia> @btime modeindex($m,(20000,20000))
   0.029 ns (0 allocations: 0 bytes)
 400040001
 
-julia> m=st(0,20000);
+julia> itr = LM(0,20000);
 
 julia> @btime modeindex($m,(20000,20000))
   0.029 ns (0 allocations: 0 bytes)
 400040001
 
-julia> m=s′s(1:100,100);
+julia> itr = L′L(1:100,100);
 
 julia> @btime modeindex($m,(100,100))
   0.029 ns (0 allocations: 0 bytes)
@@ -180,17 +186,17 @@ julia> @btime modeindex($m,(100,100))
 Indexing is not supported at the moment, but the last element can be obtained easily.
 
 ```julia
-julia> m=ts(0,2,-1,2);
+julia> itr = ML(0,2,-1,2);
 
-julia> collect(m)[end]
+julia> collect(itr)[end]
 (2, 2)
 
-julia> last(m)
+julia> last(itr)
 (2, 2)
 
-julia> m=ts(0,20000);
+julia> itr = ML(0,20000);
 
-julia> @btime last($m)
+julia> @btime last($itr)
   0.029 ns (0 allocations: 0 bytes)
 (20000, 20000)
 ```
