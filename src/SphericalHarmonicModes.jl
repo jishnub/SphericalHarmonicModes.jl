@@ -68,45 +68,44 @@ end
 
 struct tRangeError <: Exception 
 	l_max :: Integer
-	t :: Integer
+	m :: Integer
 end
 
 struct ModeMissingError{M,T} <: Exception
-	s :: T
-	t :: T
-	m :: M
+	firstmode :: T
+	secondmode :: T
+	itr :: M
 end
 
 struct NegativeDegreeError{T<:Integer} <: Exception
-	s :: T
+	l :: T
 end
 
 struct InvalidModeError{ML<:Integer,Tt<:Integer} <: Exception
-	s :: ML
-	t :: Tt
+	l :: ML
+	m :: Tt
 end
 
-struct NonContiguousError <: Exception
-end
+struct NonContiguousError <: Exception end
 
-Base.showerror(io::IO, e::tRangeError) = print(io," t = ", e.t,
+Base.showerror(io::IO, e::tRangeError) = print(io," m = ", e.m,
 		" does not satisfy ",-e.l_max," ⩽ m ⩽ ",e.l_max)
 
 Base.showerror(io::IO, e::OrderError) = print(io,e.var,"min = ",e.low,
 	" is not consistent with ",e.var,"max = ",e.high)
 
 Base.showerror(io::IO, e::ModeMissingError{<:SHModeRange}) = 
-	print(io,"Mode with (l=",e.s,",m=",e.t,")",
-	" is not included in the range given by ",e.m)
+	print(io,"Mode with (l=",e.firstmode,",m=",e.secondmode,")",
+	" is not included in the range given by ",e.itr)
 
 Base.showerror(io::IO, e::ModeMissingError{L′L}) = 
-	print(io,"Mode with (l′=",e.s,",l=",e.t,")",
-	" is not included in the range given by ",e.m)
+	print(io,"Mode with (l′=",e.firstmode,",l=",e.secondmode,")",
+	" is not included in the range given by ",e.itr)
 
-Base.showerror(io::IO, e::NegativeDegreeError) = print(io,"l = ",e.s,
+Base.showerror(io::IO, e::NegativeDegreeError) = print(io,"l = ",e.l,
 	" does not correspond to a valid mode")
 
-Base.showerror(io::IO, e::InvalidModeError) = print(io,"(l=",e.s,",m=",e.t,")",
+Base.showerror(io::IO, e::InvalidModeError) = print(io,"(l=",e.l,",m=",e.m,")",
 	" is not a valid mode. |m| <= l is not satisfied")
 
 Base.showerror(io::IO, e::NonContiguousError) = print(io,
@@ -119,10 +118,10 @@ end
 function check_if_st_range_is_valid(l_min,l_max,m_min,m_max)
 	check_if_non_negative.((l_min,l_max))
 	if m_min > m_max 
-		throw(OrderError("t",m_min,m_max))
+		throw(OrderError("m",m_min,m_max))
 	end
 	if l_min > l_max
-		throw(OrderError("s",l_min,l_max))
+		throw(OrderError("l",l_min,l_max))
 	end
 	if abs(m_max) > l_max
 		throw(tRangeError(l_max,m_max))
@@ -197,9 +196,9 @@ end
 
 function _length(mr::LM)
 
-	# We evaluate Sum[l_max - Max[Abs[t], l_min] + 1] piecewise in 
+	# We evaluate Sum[l_max - Max[Abs[m], l_min] + 1] piecewise in 
 	# Mathematica. There are four cases to consider
-	# depending on which of |t| and l_min is larger
+	# depending on which of |m| and l_min is larger
 
 	l_min,l_max,m_min,m_max = mr.l_min,mr.l_max,mr.m_min,mr.m_max
 
@@ -234,9 +233,9 @@ end
 
 function _length(mr::ML)
 
-	# We evaluate Sum[min(s,m_max)-max(-s,m_min)+1] piecewise in 
+	# We evaluate Sum[min(l,m_max)-max(-l,m_min)+1] piecewise in 
 	# Mathematica. There are four cases to consider
-	# depending on s, m_max and m_min
+	# depending on l, m_max and m_min
 
 	l_min,l_max,m_min,m_max = mr.l_min,mr.l_max,mr.m_min,mr.m_max
 
@@ -271,7 +270,7 @@ end
 
 function _length(mr::L′L)
 
-	# Number of modes is given by count(l′_range(mr,s) for s in l_range(mr))
+	# Number of modes is given by count(l′_range(mr,l) for l in l_range(mr))
 	l_min,l_max,l′_min,l′_max = mr.l_min,mr.l_max,mr.l′_min,mr.l′_max
 	Δl_max = mr.Δl_max
     
@@ -406,7 +405,7 @@ Base.last(mr::ML) = (mr.l_max,last(m_range(mr,mr.m_max)))
 Base.last(mr::L′L) = (last(l′_range(mr,mr.l_max)), mr.l_max)
 
 function modeindex(mr::LM,l::Integer,m::Integer)
-	# Check if the s and t supplied correspond to valid modes
+	# Check if the l and m supplied correspond to valid modes
 	check_if_non_negative(l)
 	check_if_valid_mode(l,m)
 	check_if_mode_present(mr,l,m)
@@ -416,7 +415,7 @@ function modeindex(mr::LM,l::Integer,m::Integer)
 	l_min,l_max = mr.l_min,mr.l_max
 	m_min,m_max = mr.m_min,mr.m_max
 
-	# Nskip = sum(length(l_range(mr,ti)) fot ti=mr.m_min:t-1)
+	# Nskip = sum(length(l_range(mr,m_i)) fot m_i=mr.m_min:m-1)
 
 	up = min(m - 1, -1)
 	lo = max(m_min, -l_min)
@@ -455,7 +454,7 @@ end
 modeindex(mr::LM,::Colon,m::Integer) = modeindex(mr,l_range(mr,m),m)
 
 function modeindex(mr::ML,l::Integer,m::Integer)
-	# Check if the s and t supplied correspond to valid modes
+	# Check if the l and m supplied correspond to valid modes
 	check_if_non_negative(l)
 	check_if_valid_mode(l,m)
 	check_if_mode_present(mr,l,m)
@@ -465,7 +464,7 @@ function modeindex(mr::ML,l::Integer,m::Integer)
 	l_min,l_max = mr.l_min,mr.l_max
 	m_min,m_max = mr.m_min,mr.m_max
 
-	# Nskip = sum(length(m_range(mr,si)) for si=mr.l_min:s-1)
+	# Nskip = sum(length(m_range(mr,l_i)) for l_i=mr.l_min:l-1)
 
 	up = min(-m_min, m_max, l - 1)
 	lo = l_min
@@ -504,7 +503,7 @@ end
 modeindex(mr::ML,l::Integer,::Colon) = modeindex(mr,l,m_range(mr,l))
 
 function modeindex(mr::L′L,l′::Integer,l::Integer)
-	# Check if s and s′ supplied correspond to valid modes
+	# Check if l and l′ supplied correspond to valid modes
 	check_if_non_negative(l)
 	check_if_non_negative(l′)
 	check_if_mode_present(mr,l′,l)
