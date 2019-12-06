@@ -1,41 +1,58 @@
 using Test,SphericalHarmonicModes
 import SphericalHarmonicModes: NonContiguousError, ModeMissingError, InvalidModeError,
-NegativeDegreeError, tRangeError, SHModeRange
+NegativeDegreeError, mOutOfBoundsError, SHModeRange
 
 @testset "constructors" begin
 
 	@testset "LM" begin
-		@test LM(0:3,-1:1) == LM(0,3,-1,1)
-		@test LM(0:3,1) == LM(0,3,1,1)
+		@test LM(1:3,-1:1) == LM(1,3,-1,1)
+		@test LM(1:3,1) == LM(1,3,1,1)
 		@test LM(2,1:2) == LM(2,2,1,2)
 		@test LM(0:3) == LM(0,3,-3,3)
 		@test LM(2) == LM(2,2,-2,2)
 	end
 
 	@testset "ML" begin
-		@test ML(0:3,-1:1) == ML(0,3,-1,1)
-		@test ML(0:3,1) == ML(0,3,1,1)
+		@test ML(1:3,-1:1) == ML(1,3,-1,1)
+		@test ML(1:3,1) == ML(1,3,1,1)
 		@test ML(2,1:2) == ML(2,2,1,2)
 		@test ML(0:3) == ML(0,3,-3,3)
 		@test ML(2) == ML(2,2,-2,2)
 	end
 
-	@testset "L₂L₁ " begin
-		Δs_max = rand(1:3)
+	@testset "L₂L₁Δ " begin
+		Δl_max = rand(1:3)
 		l_range = rand(1:3):rand(4:10)
-		@test L₂L₁(l_range,Δs_max) == L₂L₁(l_range,LM(0:Δs_max,0))
-		@test L₂L₁(l_range,Δs_max) == L₂L₁(l_range,ML(0:Δs_max,0))
+		@test L₂L₁Δ(l_range,Δl_max) == L₂L₁Δ(l_range,LM(0:Δl_max,0))
+		@test L₂L₁Δ(l_range,Δl_max) == L₂L₁Δ(l_range,ML(0:Δl_max,0))
 	end
 end
 
 @testset "length" begin
-	s_cutoff=5
+	l_cutoff=5
+	
+	function iterated_length_template(mr,f)
+		try
+			return f(mr)
+		catch e
+			if e isa ArgumentError
+				show(mr)
+				println()
+				return -1
+			else
+				throw(e)
+			end
+		end
+	end
+
 	@testset "ML" begin
-		for smin=0:s_cutoff,smax=smin:s_cutoff,tmin=-smax:smax,tmax=tmin:smax
-			mr = ML(smin,smax,tmin,tmax)
+		iterated_length(mr) = iterated_length_template(mr,
+								x->sum(length(m_range(x,l)) for l in l_range(x)))
+		for l_min=0:l_cutoff,l_max=l_min:l_cutoff,m_min=-l_max:l_max,m_max=m_min:l_max
+			l_min_trimmed = max(l_min,max(m_min,-m_max))
+			mr = ML(l_min_trimmed,l_max,m_min,m_max)
 			@test begin
-				res = length(mr) == sum(length(m_range(mr,l)) 
-								for l in l_range(mr))
+				res = length(mr) == iterated_length(mr)
 				if !res
 					println(mr)
 				end
@@ -45,11 +62,13 @@ end
 	end
 
 	@testset "LM" begin
-		for smin=0:s_cutoff,smax=smin:s_cutoff,tmin=-smax:smax,tmax=tmin:smax
-			mr = LM(smin,smax,tmin,tmax)
+		iterated_length(mr) = iterated_length_template(mr,
+								x->sum(length(l_range(x,m)) for m in m_range(x)))
+		for l_min=0:l_cutoff,l_max=l_min:l_cutoff,m_min=-l_max:l_max,m_max=m_min:l_max
+			l_min_trimmed = max(l_min,max(m_min,-m_max))
+			mr = LM(l_min_trimmed,l_max,m_min,m_max)
 			@test begin
-				res = length(mr) == sum(length(l_range(mr,m)) 
-								for m in m_range(mr))
+				res = length(mr) == iterated_length(mr)
 				if !res
 					println(mr)
 				end
@@ -59,42 +78,50 @@ end
 	end
 
 	@testset "LM==ML" begin
-	    for smin=0:s_cutoff,smax=smin:s_cutoff,tmin=-smax:smax,tmax=tmin:smax
-			m1 = LM(smin,smax,tmin,tmax)
-			m2 = ML(smin,smax,tmin,tmax)
+	    for l_min=0:l_cutoff,l_max=l_min:l_cutoff,m_min=-l_max:l_max,m_max=m_min:l_max
+	    	l_min_trimmed = max(l_min,max(m_min,-m_max))
+			m1 = LM(l_min_trimmed,l_max,m_min,m_max)
+			m2 = ML(l_min_trimmed,l_max,m_min,m_max)
 			@test length(m1) == length(m2)
 		end
 	end
 
-	@testset "L₂L₁ default s′minmax" begin
-		for smin=0:s_cutoff,smax=smin:s_cutoff,Δs_max=0:s_cutoff
-			mr = L₂L₁(smin,smax,Δs_max)
-			@test length(mr) == sum(length(l₂_range(mr,l₁)) for l₁ in l₁_range(mr))			
+	@testset "L₂L₁Δ" begin
+		iterated_length(mr) = iterated_length_template(mr,
+								x->sum(length(l₂_range(x,l₁)) for l₁ in l₁_range(x)))
+		@testset "default s′minmax" begin
+			for l_min=0:l_cutoff,l_max=l_min:l_cutoff,Δl_max=0:l_cutoff
+				mr = L₂L₁Δ(l_min,l_max,Δl_max)
+				@test length(mr) == iterated_length(mr)
+			end
 		end
-	end
 
-	@testset "L₂L₁ all" begin
-		for smin=0:s_cutoff,smax=smin:s_cutoff,Δs_max=0:s_cutoff
-			mr = L₂L₁(smin,smax,Δs_max)
-			for spmin=0:smax+Δs_max,spmax=spmin:smax+Δs_max
-				m = L₂L₁(smin,smax,Δs_max,spmin,spmax)
-				@test begin
-					res = length(mr) == sum(length(l₂_range(mr,l₁)) for l₁ in l₁_range(mr))
-					if !res
-						println(mr)
+		@testset "all" begin
+			for l_min=0:l_cutoff,l_max=l_min:l_cutoff,Δl_max=0:l_cutoff,
+				l₂_min=max(l_min-Δl_max,0):l_max+Δl_max,l₂_max=l₂_min:l_max+Δl_max
+
+					l_min_trimmed = max(l_min,l₂_min - Δl_max)
+					l_max_trimmed = min(l_max,l₂_max + Δl_max)
+					mr = L₂L₁Δ(l_min_trimmed,l_max_trimmed,Δl_max,l₂_min,l₂_max)
+					@test begin
+						res = length(mr) == iterated_length(mr)
+						if !res
+							println(mr)
+						end
+						res
 					end
-					res
-				end
+				
 			end
 		end
 	end
 end
 
 @testset "LM ML modes" begin
-	s_cutoff = 1
-	for smin in 0:s_cutoff,smax=smin:s_cutoff,tmin=-smax:smax,tmax=tmin:smax
-		l_range = smin:smax
-		m_range = tmin:tmax
+	l_cutoff = 1
+	for l_min in 0:l_cutoff,l_max=l_min:l_cutoff,m_min=-l_max:l_max,m_max=m_min:l_max
+		l_min_trimmed = max(l_min,max(m_min,-m_max))
+		l_range = l_min_trimmed:l_max
+		m_range = m_min:m_max
 		m1 = LM(l_range,m_range)
 		m2 = ML(l_range,m_range)
 		@test sort(collect(m1)) == sort(collect(m2))
@@ -121,7 +148,7 @@ end
 		N_skip + searchsortedfirst(l_range(m,t),s)
 	end
 
-	function modeindex2(m::L₂L₁,s′::Integer,s::Integer)
+	function modeindex2(m::L₂L₁Δ,s′::Integer,s::Integer)
 		N_skip = 0
 		for si in m.l₁_min:s-1
 			N_skip += length(l₂_range(m,si))
@@ -132,10 +159,11 @@ end
 
 	modeindex2(m::SHModeRange,(s,t)::Tuple) = modeindex(m,s,t)
 
-	s_cutoff = 1
+	l_cutoff = 5
 	@testset "LM" begin
-		for smin=0:s_cutoff,smax=smin:s_cutoff,tmin=-smax:smax,tmax=tmin:smax
-			m1 = LM(smin,smax,tmin,tmax)
+		for l_min=0:l_cutoff,l_max=l_min:l_cutoff,m_min=-l_max:l_max,m_max=m_min:l_max
+			l_min_trimmed = max(l_min,max(m_min,-m_max))
+			m1 = LM(l_min_trimmed,l_max,m_min,m_max)
 			for (s,t) in m1
 				@test modeindex(m1,s,t) == modeindex2(m1,s,t)
 			end
@@ -143,16 +171,17 @@ end
 			for t in m_range(m1), s1 in l_range(m1,t), 
 					s2 in l_range(m1,t)
 				
-				smin,smax=minmax(s1,s2)
-				@test modeindex(m1,smin:smax,t) == 
-				findfirst(isequal((smin,t)),m1c):findfirst(isequal((smax,t)),m1c)
+				l_min,l_max=minmax(s1,s2)
+				@test modeindex(m1,l_min:l_max,t) == 
+				findfirst(isequal((l_min,t)),m1c):findfirst(isequal((l_max,t)),m1c)
 			end
 		end
 	end
 
 	@testset "ML" begin
-		for smin=0:s_cutoff,smax=smin:s_cutoff,tmin=-smax:smax,tmax=tmin:smax
-			m2 = ML(smin,smax,tmin,tmax)
+		for l_min=0:l_cutoff,l_max=l_min:l_cutoff,m_min=-l_max:l_max,m_max=m_min:l_max
+			l_min_trimmed = max(l_min,max(m_min,-m_max))
+			m2 = ML(l_min_trimmed,l_max,m_min,m_max)
 			for (s,t) in m2
 				@test modeindex(m2,s,t) == modeindex2(m2,s,t)
 			end
@@ -160,18 +189,22 @@ end
 			for s in l_range(m2), t1 in  m_range(m2,s), 
 					t2 in m_range(m2,s)
 
-				tmin,tmax = minmax(t1,t2)
-				@test modeindex(m2,s,tmin:tmax) == 
-				findfirst(isequal((s,tmin)),m2c):findfirst(isequal((s,tmax)),m2c)
+				m_min,m_max = minmax(t1,t2)
+				@test modeindex(m2,s,m_min:m_max) == 
+				findfirst(isequal((s,m_min)),m2c):findfirst(isequal((s,m_max)),m2c)
 			end
 		end
 	end
 
-	@testset "L₂L₁" begin
-		for smin=0:s_cutoff,smax=smin:s_cutoff,
-			Δs_max=0:s_cutoff,s′min=0:s_cutoff,s′max=s′min:s_cutoff
+	@testset "L₂L₁Δ" begin
+		for l_min=0:l_cutoff,l_max=l_min:l_cutoff,
+			Δl_max=0:l_cutoff,
+			s′min=max(0,l_min-Δl_max):l_max+Δl_max,s′max=s′min:l_max+Δl_max
 
-			m3 = L₂L₁(smin,smax,Δs_max,s′min,s′max)
+			l_max_trimmed = min(l_max,s′max + Δl_max)
+			l_min_trimmed = max(l_min,s′min - Δl_max)
+
+			m3 = L₂L₁Δ(l_min_trimmed,l_max_trimmed,Δl_max,s′min,s′max)
 			for (s′,s) in m3
 				@test begin 
 					res = modeindex(m3,s′,s) == modeindex2(m3,s′,s)
@@ -219,8 +252,8 @@ end
 	        @test_throws NonContiguousError modeindex(m,4:5,0:1)
 	        @test_throws InvalidModeError modeindex(m,l_range(m),m_range(m))
 	    end
-	    @testset "L₂L₁" begin
-	        m=L₂L₁(0:3,2,0:3);
+	    @testset "L₂L₁Δ" begin
+	        m=L₂L₁Δ(0:3,2,0:3);
 	        s′r = 0:2; sr = 0:1;
 	        ind1 = modeindex(m,minimum(s′r),minimum(sr))
 	        ind2 = modeindex(m,maximum(s′r),maximum(sr))
@@ -252,13 +285,13 @@ end
 	        @test modeindex(m,mpart) == 2:7
 	        @test collect(m)[modeindex(m,mpart)] == collect(mpart)
 	    end
-	    @testset "L₂L₁" begin
-	        m=L₂L₁(0:2,2);
+	    @testset "L₂L₁Δ" begin
+	        m=L₂L₁Δ(0:2,2);
 	        # Non-Continguous
-	        mpart=L₂L₁(1:2,1,1:2)
+	        mpart=L₂L₁Δ(1:2,1,1:2)
 	        @test modeindex(m,mpart) == 5:10
 	        # Contiguous
-	        mpart=L₂L₁(1:2,2)
+	        mpart=L₂L₁Δ(1:2,2)
 	        @test modeindex(m,mpart) == 4:12
 	        @test collect(m)[modeindex(m,mpart)] == collect(mpart)
 	    end
@@ -276,8 +309,8 @@ end
 		@test last(collect(m2)) == last(m2)
 	end
 	
-	@testset "L₂L₁" begin
-		m3 = L₂L₁(rand(1:3):rand(4:10),rand(1:5))
+	@testset "L₂L₁Δ" begin
+		m3 = L₂L₁Δ(rand(1:3):rand(4:10),rand(1:5))
 		@test last(collect(m3)) == last(m3)
 	end
 end
