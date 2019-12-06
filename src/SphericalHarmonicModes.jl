@@ -401,7 +401,7 @@ end
 Base.in(T::Tuple,mr::ModeRange) = _in(T,mr)
 
 Base.last(mr::LM) = (last(l_range(mr,mr.m_max)),mr.m_max)
-Base.last(mr::ML) = (mr.l_max,last(m_range(mr,mr.m_max)))
+Base.last(mr::ML) = (mr.l_max,last(m_range(mr,mr.l_max)))
 Base.last(mr::L₂L₁) = (last(l₂_range(mr,mr.l₁_max)), mr.l₁_max)
 
 function modeindex(mr::LM,l::Integer,m::Integer)
