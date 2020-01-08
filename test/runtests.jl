@@ -315,3 +315,16 @@ end
 	end
 end
 
+@testset "flip" begin
+    @testset "LM" begin
+		m = LM(0:1)
+		@test ML(m) == ML(0:1)
+		@test flip(m) == ML(0:1)
+    end
+    @testset "ML" begin
+		m = ML(0:1)
+		@test LM(m) == LM(0:1)
+		@test flip(m) == LM(0:1)
+    end
+end
+

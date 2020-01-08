@@ -1,7 +1,7 @@
 module SphericalHarmonicModes
 
 export LM,ML,L₂L₁Δ
-export modeindex,l_range,m_range,l₂_range,l₁_range
+export modeindex,l_range,m_range,l₂_range,l₁_range, flip
 
 abstract type ModeRange end
 abstract type SHModeRange <: ModeRange end
@@ -214,6 +214,12 @@ end
 
 (::Type{T})(l_range::AbstractUnitRange{<:Integer}) where {T<:SHModeRange} = 
 	T(extrema(l_range)...)
+
+# Spherical constructors to flip order
+@inline LM(m::ML) = LM(m.l_min,m.l_max,m.m_min,m.m_max)
+@inline ML(m::LM) = ML(m.l_min,m.l_max,m.m_min,m.m_max)
+@inline flip(m::LM) = ML(m)
+@inline flip(m::ML) = LM(m)
 
 function L₂L₁Δ(l_min::Integer,l_max::Integer,Δl_max::Integer,
 	l₂_min::Integer=max(l_min-Δl_max,0))
