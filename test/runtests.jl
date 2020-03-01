@@ -320,11 +320,13 @@ end
 		m = LM(0:1)
 		@test ML(m) == ML(0:1)
 		@test flip(m) == ML(0:1)
+		@test LM(m) === m
     end
     @testset "ML" begin
 		m = ML(0:1)
 		@test LM(m) == LM(0:1)
 		@test flip(m) == LM(0:1)
+		@test ML(m) === m
     end
 end
 

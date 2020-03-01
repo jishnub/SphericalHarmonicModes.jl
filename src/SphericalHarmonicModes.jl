@@ -218,6 +218,8 @@ end
 # Spherical constructors to flip order
 @inline LM(m::ML) = LM(m.l_min,m.l_max,m.m_min,m.m_max)
 @inline ML(m::LM) = ML(m.l_min,m.l_max,m.m_min,m.m_max)
+@inline ML(m::ML) = m
+@inline LM(m::LM) = m
 @inline flip(m::LM) = ML(m)
 @inline flip(m::ML) = LM(m)
 
