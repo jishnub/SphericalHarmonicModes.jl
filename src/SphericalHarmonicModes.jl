@@ -532,6 +532,15 @@ Base.lastindex(mr::ModeRange) = length(mr)
 @inline Base.axes(mr::ModeRange) = (Base.OneTo(length(mr)),)
 @inline Base.axes(mr::ModeRange,d::Integer) = d == 1 ? Base.OneTo(length(mr)) : Base.OneTo(1)
 
+# Intersect ranges
+
+@inline function Base.intersect(mr1::T, mr2::T) where {T<:ModeRange}
+	lr = intersect(l_range(mr1), l_range(mr2))
+	mr = intersect(m_range(mr1), m_range(mr2))
+	(isempty(lr) || isempty(mr)) && return nothing
+	T(lr, mr)
+end
+
 # Display the iterators
 
 function Base.show(io::IO, mr::SHModeRange)

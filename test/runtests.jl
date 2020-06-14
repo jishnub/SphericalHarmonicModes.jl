@@ -1,8 +1,16 @@
 using Test,SphericalHarmonicModes
 import SphericalHarmonicModes: NonContiguousError, ModeMissingError, InvalidModeError,
-NegativeDegreeError, mOutOfBoundsError, SHModeRange
+NegativeDegreeError, mOutOfBoundsError, OrderError, SHModeRange, check_if_lm_range_is_valid,
+ModeRangesInconsistentError
 
 @testset "constructors" begin
+
+	@testset "check_if_lm_range_is_valid" begin
+	    @test_throws OrderError check_if_lm_range_is_valid(3,1,0,0)
+	    @test_throws OrderError check_if_lm_range_is_valid(1,1,2,0)
+	    @test_throws mOutOfBoundsError check_if_lm_range_is_valid(1,1,1,3)
+	    @test_throws mOutOfBoundsError check_if_lm_range_is_valid(2,2,-4,2)
+	end
 
 	@testset "LM" begin
 		@test LM(1:3,-1:1) == LM(1,3,-1,1)
@@ -10,6 +18,9 @@ NegativeDegreeError, mOutOfBoundsError, SHModeRange
 		@test LM(2,1:2) == LM(2,2,1,2)
 		@test LM(0:3) == LM(0,3,-3,3)
 		@test LM(2) == LM(2,2,-2,2)
+
+		@test LM(1:3,2:2) == LM(2:3,2:2)
+		@test eltype(LM(1:2)) == Tuple{Int,Int}
 	end
 
 	@testset "ML" begin
@@ -18,13 +29,37 @@ NegativeDegreeError, mOutOfBoundsError, SHModeRange
 		@test ML(2,1:2) == ML(2,2,1,2)
 		@test ML(0:3) == ML(0,3,-3,3)
 		@test ML(2) == ML(2,2,-2,2)
+
+		@test ML(1:3,2:2) == ML(2:3,2:2)
+		@test eltype(ML(1:2)) == Tuple{Int,Int}
 	end
 
 	@testset "L₂L₁Δ " begin
-		Δl_max = rand(1:3)
-		l_range = rand(1:3):rand(4:10)
-		@test L₂L₁Δ(l_range,Δl_max) == L₂L₁Δ(l_range,LM(0:Δl_max,0))
-		@test L₂L₁Δ(l_range,Δl_max) == L₂L₁Δ(l_range,ML(0:Δl_max,0))
+		Δl_max = 3
+		l_range = 1:10
+		m = L₂L₁Δ(l_range, Δl_max)
+		@test m == L₂L₁Δ(l_range,LM(0:Δl_max,0))
+		@test m == L₂L₁Δ(l_range,ML(0:Δl_max,0))
+
+		l2_range = 5:8
+		mr = L₂L₁Δ(l_range, Δl_max, l2_range)
+		@test mr == L₂L₁Δ(2:10,3,5:8)
+		
+		l_range = 10:10
+		l2_range = 1:8
+		mr = L₂L₁Δ(l_range, Δl_max, l2_range)
+		@test mr == L₂L₁Δ(10:10,3,7:8)
+
+		l2_range = 1:20
+		mr = L₂L₁Δ(l_range, Δl_max, l2_range)
+		@test mr == L₂L₁Δ(10:10,3,7:13)
+
+		l_range = 1:10
+		l2_range = 1:3
+		mr = L₂L₁Δ(l_range, Δl_max, l2_range)
+		@test mr == L₂L₁Δ(1:6,3,1:3)
+
+		@test eltype(m) == Tuple{Int,Int}
 	end
 end
 
@@ -264,6 +299,31 @@ end
 	    end
 	end
 
+	@testset "colon" begin
+	    @testset "LM" begin
+	        mr = LM(1:2)
+	        @test modeindex(mr,:,-2) == 1:1
+	        @test modeindex(mr,:,-1) == 2:3
+	        @test modeindex(mr,:,0) == 4:5
+	        @test modeindex(mr,:,1) == 6:7
+	        @test modeindex(mr,:,2) == 8:8
+	        @test modeindex(mr,:,:) == Base.OneTo(8)
+	    end
+	    @testset "ML" begin
+	        mr = ML(1:2)
+	        @test modeindex(mr,1,:) == 1:3
+	        @test modeindex(mr,2,:) == 4:8
+	        @test modeindex(mr,:,:) == Base.OneTo(8)
+	    end
+	    @testset "L₂L₁Δ" begin
+	        mr = L₂L₁Δ(1:3,1)
+	        @test modeindex(mr,:,1) == 1:3
+	        @test modeindex(mr,:,2) == 4:6
+	        @test modeindex(mr,:,3) == 7:9
+	        @test modeindex(mr,:,:) == Base.OneTo(9)
+	    end
+	end
+
 	@testset "ModeRange" begin
 	    @testset "LM" begin
 	        m=LM(0:2)
@@ -315,6 +375,56 @@ end
 	end
 end
 
+@testset "firstindex & lastindex" begin
+    @testset "firstindex" begin
+        mr = LM(1:2)
+        @test firstindex(mr) == 1
+        mr = ML(1:2)
+        @test firstindex(mr) == 1
+        mr = L₂L₁Δ(1:3,1)
+        @test firstindex(mr) == 1
+    end
+    @testset "lastindex" begin
+        mr = LM(1:2)
+        @test lastindex(mr) == 8
+        mr = ML(1:2)
+        @test lastindex(mr) == 8
+        mr = L₂L₁Δ(1:3,1)
+        @test lastindex(mr) == 9
+    end
+end
+
+@testset "size & axes" begin
+    @testset "size" begin
+        mr = LM(1:2)
+        @test size(mr) == (8,)
+        @test size(mr,1) == 8
+        @test size(mr,2) == 1
+        mr = ML(1:2)
+        @test size(mr) == (8,)
+        @test size(mr,1) == 8
+        @test size(mr,2) == 1
+        mr = L₂L₁Δ(1:3,1)
+        @test size(mr) == (9,)
+        @test size(mr,1) == 9
+        @test size(mr,2) == 1
+    end
+    @testset "axes" begin
+        mr = LM(1:2)
+        @test axes(mr) == (Base.OneTo(8),)
+        @test axes(mr,1) == Base.OneTo(8)
+        @test axes(mr,2) == Base.OneTo(1)
+        mr = ML(1:2)
+        @test axes(mr) == (Base.OneTo(8),)
+        @test axes(mr,1) == Base.OneTo(8)
+        @test axes(mr,2) == Base.OneTo(1)
+        mr = L₂L₁Δ(1:3,1)
+        @test axes(mr) == (Base.OneTo(9),)
+        @test axes(mr,1) == Base.OneTo(9)
+        @test axes(mr,2) == Base.OneTo(1)
+    end
+end
+
 @testset "flip" begin
     @testset "LM" begin
 		m = LM(0:1)
@@ -330,3 +440,68 @@ end
     end
 end
 
+@testset "intersect" begin
+	@testset "same l, different m" begin
+		for T in [LM,ML]
+			@eval begin
+			    l1 = $T(3:3,0:2)
+			    l2 = $T(3:3,1:3)
+			    @test intersect(l1,l2) == $T(3:3,1:2)
+
+			    l1 = $T(1:3)
+			    l2 = $T(1:3,1:3)
+			    @test intersect(l1,l2) == $T(1:3,1:3)
+			end
+		end
+	end
+	@testset "different l, same m" begin
+		for T in [LM,ML]
+			@eval begin
+			    l1 = $T(1:3,1:1)
+			    l2 = $T(1:1,1:1)
+			    @test intersect(l1,l2) == $T(1:1,1:1)
+
+			    l1 = $T(2:2)
+			    l2 = $T(1:3,-2:2)
+			    @test intersect(l1,l2) == $T(2:2,-2:2)
+			end
+		end
+	end
+	@testset "different l, different m" begin
+		for T in [LM,ML]
+			@eval begin
+			    l1 = $T(2:3,2:2)
+			    l2 = $T(0:2)
+			    @test intersect(l1,l2) == $T(2:2,2:2)
+
+			    l1 = $T(2:3)
+			    l2 = $T(1:10,-1:10)
+			    @test intersect(l1,l2) == $T(2:3,-1:3)
+
+			    l1 = $T(2:3)
+			    l2 = $T(9:10, 5:5)
+			    @test intersect(l1,l2) === nothing
+			end
+		end
+	end
+end
+
+@testset "show" begin
+    io = IOBuffer()
+    
+    show(io, MIME"text/plain"(),  LM(1:2,1:1))
+    show(io,  LM(1:2,1:1))
+    show(io, MIME"text/plain"(),  ML(1:2,1:1))
+    show(io,  ML(1:2,1:1))
+    show(io, MIME"text/plain"(),  L₂L₁Δ(1:2,1))
+    show(io,  L₂L₁Δ(1:2,1))
+
+    showerror(io, NegativeDegreeError(-1))
+    showerror(io, OrderError("l",3,1))
+    showerror(io, mOutOfBoundsError(3,1))
+    showerror(io, ModeMissingError(2,2,LM(1:1)))
+    showerror(io, ModeMissingError(3,3,L₂L₁Δ(1:1,1)))
+    showerror(io, ModeRangesInconsistentError(""))
+    showerror(io, InvalidModeError(1,2))
+    showerror(io, NonContiguousError())
+end

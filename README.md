@@ -126,21 +126,15 @@ true
  The length of an iterator can be computed in `O(1)` time.
  
 ```julia
-julia> itr = LM(0,20000000,-1000000,2000);
-
-julia> @btime length($itr)
-  0.029 ns (0 allocations: 0 bytes)
-19540018501001
+julia> @btime length(m) setup=(m=LM(0:rand(1:1000000)))
+  20.160 ns (0 allocations: 0 bytes)
 ```
 
 It is easy to check whether a mode is present in the iterator. This can also be checked in `O(1)` time.
 
 ```julia
-julia> itr = LM(0,20000000,-1000000,2000);
-
-julia> @btime (1000,1000) in $itr
-  0.029 ns (0 allocations: 0 bytes)
-true
+julia> @btime el in m setup=(m=LM(0:rand(1:1000000)); el=(rand(1:100),rand(1:100)))
+  2.676 ns (0 allocations: 0 bytes)
 ```
 
 The index at which a mode is present can be checked using `modeindex`. For example
@@ -170,21 +164,18 @@ This is also evaluated in `O(1)` time.
 ```julia
 julia> itr = ML(0,20000);
 
-julia> @btime modeindex($itr,(20000,20000))
-  0.029 ns (0 allocations: 0 bytes)
-400040001
+julia> @btime modeindex($itr,el) setup=(el=(rand(1000:20000),rand(1:1000)))
+  17.488 ns (0 allocations: 0 bytes)
 
 julia> itr = LM(0,20000);
 
-julia> @btime modeindex($itr,(20000,20000))
-  0.029 ns (0 allocations: 0 bytes)
-400040001
+julia> @btime modeindex($itr,el) setup=(el=(rand(1000:20000),rand(1:1000)))
+  18.084 ns (0 allocations: 0 bytes)
 
 julia> itr = L₂L₁Δ(1:100,100);
 
-julia> @btime modeindex($itr,(100,100))
-  0.029 ns (0 allocations: 0 bytes)
-15050
+julia> @btime modeindex($itr,el) setup=(el=(rand(1:100),rand(1:100)))
+  15.411 ns (0 allocations: 0 bytes)
 ```
 
 Indexing is not supported at the moment, but the last element can be obtained easily.
@@ -200,12 +191,9 @@ julia> last(itr)
 
 julia> itr = ML(0,20000);
 
-julia> @btime last($itr)
-  0.029 ns (0 allocations: 0 bytes)
-(20000, 20000)
+julia> @btime last(m) setup=(m=ML(0:rand(1:20000)))
+  3.734 ns (0 allocations: 0 bytes)
 ```
-
-The times were measured on an Intel® Core™ i7-8650U machine.
 
 ## License
 
