@@ -44,6 +44,8 @@ ModeRangesInconsistentError
 		l2_range = 5:8
 		mr = L₂L₁Δ(l_range, Δl_max, l2_range)
 		@test mr == L₂L₁Δ(2:10,3,5:8)
+		mr = L₂L₁Δ(extrema(l_range)..., Δl_max, l2_range)
+		@test mr == L₂L₁Δ(2:10,3,5:8)
 		
 		l_range = 10:10
 		l2_range = 1:8
@@ -60,6 +62,20 @@ ModeRangesInconsistentError
 		@test mr == L₂L₁Δ(1:6,3,1:3)
 
 		@test eltype(m) == Tuple{Int,Int}
+	end
+
+	@testset "keys" begin
+		m = LM(1:2)
+		@test keys(m) == Base.OneTo(8)
+		@test eachindex(m) == Base.OneTo(8)
+
+		m = ML(1:2)
+		@test keys(m) == Base.OneTo(8)
+		@test eachindex(m) == Base.OneTo(8)
+
+		m = L₂L₁Δ(1:2,1)
+		@test keys(m) == Base.OneTo(6)
+		@test eachindex(m) == Base.OneTo(6)
 	end
 end
 
