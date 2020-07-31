@@ -3,6 +3,8 @@
 [![Build Status](https://travis-ci.com/jishnub/SphericalHarmonicModes.jl.svg?branch=master)](https://travis-ci.com/jishnub/SphericalHarmonicModes.jl)
 [![Build Status](https://ci.appveyor.com/api/projects/status/github/jishnub/SphericalHarmonicModes.jl?svg=true)](https://ci.appveyor.com/project/jishnub/SphericalHarmonicModes-jl)
 [![Coverage Status](https://coveralls.io/repos/github/jishnub/SphericalHarmonicModes.jl/badge.svg?branch=master)](https://coveralls.io/github/jishnub/SphericalHarmonicModes.jl?branch=master)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://jishnub.github.io/SphericalHarmonicModes.jl/stable)
+[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://jishnub.github.io/SphericalHarmonicModes.jl/dev)
 
 This package provides a few iterators that are relevant in the context of spherical harmonics. The goal of this project is to convert multi-dimensional Cartesian indices to one-dimensional ones. They may therefore be used for indexing arrays, and would allow storing arrays of spherical harmonic coefficients contiguously. There is also the package [SphericalHarmonicArrays.jl](https://github.com/jishnub/SphericalHarmonicArrays.jl) that uses these iterators for indexing.
 
