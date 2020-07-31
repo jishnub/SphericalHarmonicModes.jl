@@ -26,7 +26,7 @@ julia> using SphericalHarmonicModes
 
 There are two different orderings possible to iterate over spherical harmonic modes, with either `l` or `m` increasing faster than the other. They are denoted by `LM` and `ML`, where --- going by the Julia convention of column-major arrays --- the first index increases faster than the second. Irrespective of which ordering is chosen, the modes are always returned as `(l,m)` when the iterators are looped over.
 
-Both the iterators are created using the general syntax `itr(l_min,l_max,m_min,m_max)` where `itr` may be `LM` or `ML`. To create an iterator with `m` increasing faster than `l`:
+Both the iterators are created using the general syntax `itr(l_range, m_range)` where `itr` may be `LM` or `ML`. To create an iterator with `m` increasing faster than `l`:
 
 ```julia
 julia> itr = ML(0:1, -1:1)
@@ -62,13 +62,6 @@ julia> collect(itr)
 julia> LM(2:4) # a range in l, and all valid m for each l
 Spherical harmonic modes with l increasing faster than m
 (l_min = 2, l_max = 4, m_min = -4, m_max = 4)
-```
-
- You may also choose a range of `m`'s.
-```julia
-julia> LM(2:4, 0:2) # a range in l, and all valid m in range for each l
-Spherical harmonic modes with l increasing faster than m
-(l_min = 2, l_max = 4, m_min = 0, m_max = 2)
 ```
 
 ### Creating an (l2,l1) iterator
