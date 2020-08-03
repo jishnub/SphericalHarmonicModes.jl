@@ -527,12 +527,12 @@ end
 			    @test intersect(l1,l2) == $T(1:3,1:3)
 			    
 			    for MT in [ZeroTo, ToZero]
-				    l1 = $T(1:3, MT)
-				    l2 = $T(1:3, MT)
+				    local l1 = $T(1:3, MT)
+				    local l2 = $T(1:3, MT)
 				    @test intersect(l1,l2) == intersect(l2,l1) == $T(1:3, MT)
 
-				    l1 = $T(1:3, MT)
-				    l2 = $T(1:3, FullRange)
+				    local l1 = $T(1:3, MT)
+				    local l2 = $T(1:3, FullRange)
 				    @test intersect(l1,l2) == intersect(l2,l1) == $T(1:3, MT)
 				end
 
@@ -581,12 +581,12 @@ end
 			    @test intersect(l1,l2) === nothing
 
 			    for MT in [FullRange, ZeroTo, ToZero]
-				    l1 = $T(2:3,MT)
-				    l2 = $T(1:4,MT)
+				    local l1 = $T(2:3,MT)
+				    local l2 = $T(1:4,MT)
 			    	@test intersect(l1,l2) == $T(2:3,MT)
 
-			    	l1 = $T(ZeroTo(3),MT)
-				    l2 = $T(ZeroTo(4),MT)
+			    	local l1 = $T(ZeroTo(3),MT)
+				    local l2 = $T(ZeroTo(4),MT)
 			    	@test intersect(l1,l2) == $T(ZeroTo(3),MT)
 			    end
 			end

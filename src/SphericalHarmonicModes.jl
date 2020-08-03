@@ -344,7 +344,7 @@ struct FullRange <: PartiallySpecifiedRange
 end
 Base.first(r::FullRange) = -r.l
 Base.last(r::FullRange) = r.l
-Base.show(io::IO, r::FullRange) = print(io, "-",repr(r.l),":",repr(r.l))
+Base.show(io::IO, r::FullRange) = print(io, repr(-r.l),":",repr(r.l))
 
 Base.intersect(a::T, b::FullRange) where {T<:ZeroClampedRange} = T(min(a.l, b.l))
 Base.intersect(a::FullRange, b::T) where {T<:ZeroClampedRange} = T(min(a.l, b.l))
