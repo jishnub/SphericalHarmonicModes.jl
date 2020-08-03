@@ -447,7 +447,7 @@ l2_range(mr::L2L1Triangle) = mr.l2_min:mr.l2_max
     l_range(mr::SphericalHarmonicModes.SHModeRange, m::Integer)
 
 Return the subsection of the range of `l` spanned by the iterator for which
-`(l, m)` is a valid spherical harmonic mode.
+`(l,m)` is a valid spherical harmonic mode.
 
 # Examples
 ```jldoctest
@@ -475,7 +475,7 @@ end
     m_range(mr::SphericalHarmonicModes.SHModeRange, l::Integer)
 
 Return the subsection of the range of `m` spanned by the iterator for which
-`(l, m)` is a valid spherical harmonic mode.
+`(l,m)` is a valid spherical harmonic mode.
 
 # Examples
 ```jldoctest
@@ -644,7 +644,7 @@ julia> modeindex(r, (2,1))
 2
 
 julia> modeindex(r, (3,2))
-ERROR: Mode with (l=3,m=2) is not included in the range given by (l=1:2,m=1:2)
+ERROR: Mode with (l=3,m=2) is not included in the range given by LM(1:2, 1:2)
 ```
 """
 @propagate_inbounds modeindex(mr::ModeRange, T::Tuple{Vararg{Integer}}) = modeindex(mr, T...)
@@ -883,13 +883,17 @@ end
 
 # Display the iterators
 
-function Base.show(io::IO, mr::SHModeRange)
-    print(io,"(l=",l_range(mr),",m=",m_range(mr),")")
+function Base.show(io::IO, mr::LM)
+    print(io,"LM(",l_range(mr),", ",m_range(mr),")")
+end
+
+function Base.show(io::IO, mr::ML)
+    print(io,"ML(",l_range(mr),", ",m_range(mr),")")
 end
 
 function Base.show(io::IO, mr::L2L1Triangle)
-    print(io,"(l1=",l1_range(mr),",Δl_max=",mr.Δl_max,
-        ",l2=",l2_range(mr),")")
+    print(io,"L2L1Triangle(",l1_range(mr),", ",mr.Δl_max,
+        ", ",l2_range(mr),")")
 end
 
 function Base.show(io::IO, ::MIME"text/plain", mr::LM)
