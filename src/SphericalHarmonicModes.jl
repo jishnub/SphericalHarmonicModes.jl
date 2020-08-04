@@ -26,8 +26,8 @@ abstract type SHModeRange <: ModeRange end
 Base.eltype(::SHModeRange) = Tuple{Int,Int}
 
 """
-    LM(l_range::AbstractUnitRange{Int}, m_range::AbstractUnitRange{Int})
-    LM(l_range::AbstractUnitRange{Int}, [T = FullRange]) where T<:Union{FullRange, ZeroTo, ToZero}
+    LM(l_range::AbstractUnitRange{<:Integer}, m_range::AbstractUnitRange{<:Integer})
+    LM(l_range::AbstractUnitRange{<:Integer}, [T = FullRange]) where T<:Union{FullRange, ZeroTo, ToZero}
 
 Return an iterator that loops over pairs of spherical harmonic modes `(l,m)`, 
 with `l` increasing faster than `m`. The loop runs over all the valid modes that 
@@ -73,27 +73,15 @@ struct LM{LT,MT} <: SHModeRange
     l_range :: LT
     m_range :: MT
 
-    function LM(l_range::AbstractUnitRange{Int}, m_range::AbstractUnitRange{Int})
-        ensure_nonempty(l_range)
-        ensure_nonempty(m_range)
-        
-        l_min,l_max = firstlast(l_range)
-        m_min,m_max = firstlast(m_range)
-
-        check_if_lm_range_is_valid(l_min,l_max,m_min,m_max)
-        
-        if max(m_min,-m_max) > l_min
-            l_min = max(m_min,-m_max)
-            l_range = l_min:l_max
-        end
-
-        new{typeof(l_range),typeof(m_range)}(l_range, m_range)
+    function LM{LT,MT}(l_range::LT, m_range::MT) where {LT<:AbstractRange, MT<:AbstractRange}
+        map(ensure_nonempty, (l_range, m_range))
+        new(l_range, m_range)
     end
 end
 
 """
-    ML(l_range::AbstractUnitRange{Int}, m_range::AbstractUnitRange{Int})
-    ML(l_range::AbstractUnitRange{Int}, [T = FullRange]) where T<:Union{FullRange, ZeroTo, ToZero}
+    ML(l_range::AbstractUnitRange{<:Integer}, m_range::AbstractUnitRange{<:Integer})
+    ML(l_range::AbstractUnitRange{<:Integer}, [T = FullRange]) where T<:Union{FullRange, ZeroTo, ToZero}
 
 Return an iterator that loops over pairs of spherical harmonic modes `(l,m)`, 
 with `m` increasing faster than `l`. The loop runs over all the valid modes that 
@@ -139,13 +127,17 @@ struct ML{LT,MT} <: SHModeRange
     l_range :: LT
     m_range :: MT
 
-    function ML(l_range::AbstractUnitRange{Int}, m_range::AbstractUnitRange{Int})
-        ensure_nonempty(l_range)
-        ensure_nonempty(m_range)
+    function ML{LT,MT}(l_range::LT, m_range::MT) where {LT<:AbstractRange, MT<:AbstractRange}
+        map(ensure_nonempty, (l_range, m_range))
+        new(l_range, m_range)
+    end
+end
 
-        l_min,l_max = firstlast(l_range)
-        m_min,m_max = firstlast(m_range)
-        
+for DT in [:LM, :ML]
+    @eval function $DT(l_range::AbstractUnitRange{<:Integer}, m_range::AbstractUnitRange{<:Integer})
+        l_min, l_max = firstlast(l_range)
+        m_min, m_max = firstlast(m_range)
+
         check_if_lm_range_is_valid(l_min,l_max,m_min,m_max)
         
         if max(m_min,-m_max) > l_min
@@ -153,7 +145,7 @@ struct ML{LT,MT} <: SHModeRange
             l_range = l_min:l_max
         end
 
-        new{typeof(l_range),typeof(m_range)}(l_range, m_range)
+        $DT{typeof(l_range),typeof(m_range)}(l_range, m_range)
     end
 end
 

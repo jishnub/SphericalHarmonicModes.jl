@@ -37,6 +37,7 @@ import SphericalHarmonicModes: flip
 
 	@testset "LM" begin
 		@test eltype(LM(1:2)) == Tuple{Int,Int}
+		@test LM{UnitRange{Int},UnitRange{Int}}(2:3,2:2) == LM(2:3,2:2)
 		@test LM(1:3,2:2) == LM(2:3,2:2)
 		@test LM(1:3) == LM(1:3, -3:3)
 		@test LM(1:3, FullRange) == LM(1:3, -3:3)
@@ -58,6 +59,7 @@ import SphericalHarmonicModes: flip
 
 	@testset "ML" begin
 		@test eltype(ML(1:2)) == Tuple{Int,Int}
+		@test ML{UnitRange{Int},UnitRange{Int}}(2:3,2:2) == ML(2:3,2:2)
 		@test ML(1:3,2:2) == ML(2:3,2:2)
 		@test ML(1:3) == ML(1:3, -3:3)
 		@test ML(1:3, FullRange) == ML(1:3, -3:3)
