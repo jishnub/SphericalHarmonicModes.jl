@@ -3,7 +3,7 @@ module SphericalHarmonicModes
 import Base: @propagate_inbounds
 
 export LM, ML, L2L1Triangle
-export FullRange, ZeroTo, ToZero
+export FullRange, ZeroTo, ToZero, SingleValuedRange
 export modeindex, l_range, m_range, l2_range, l1_range
 
 firstlast(r::AbstractRange) = (first(r), last(r))
@@ -13,6 +13,8 @@ firstlast(r::AbstractRange) = (first(r), last(r))
 
 Abstract type whose subtypes are iterators over combinations of spherical harmonic modes.
 This is the topmost node in the type hierarchy defined in this package.
+
+Direct subtypes of `ModeRange` are [`SHModeRange`](@ref) and [`L2L1Triangle`](@ref).
 """
 abstract type ModeRange end
 """
@@ -36,8 +38,8 @@ runs over all valid values of `m` for each `l`.
 Neither `l_range` nor `m_range` may be empty.
 
 Optionally `m_range` may be provided implicitly using the range specifiers 
-[`FullRange`](@ref), [`ZeroTo`](@ref) and [`ToZero`](@ref).
-Additionally, `l_range` may be of type [`ZeroTo`](@ref).
+[`FullRange`](@ref), [`ZeroTo`](@ref) and [`ToZero`](@ref), or as a [`SingleValuedRange`](@ref) type.
+Additionally, `l_range` may be of type [`ZeroTo`](@ref) or [`SingleValuedRange`](@ref).
 Iterators constructed using these special types would often permit optimizations.
 
 !!! warning 
@@ -90,8 +92,8 @@ runs over all valid values of `m` for each `l`.
 Neither `l_range` nor `m_range` may be empty.
 
 Optionally `m_range` may be provided implicitly using the range specifiers 
-[`FullRange`](@ref), [`ZeroTo`](@ref) and [`ToZero`](@ref).
-Additionally `l_range` may be of type [`ZeroTo`](@ref).
+[`FullRange`](@ref), [`ZeroTo`](@ref) and [`ToZero`](@ref), or as a [`SingleValuedRange`](@ref) type.
+Additionally `l_range` may be of type [`ZeroTo`](@ref) or [`SingleValuedRange`](@ref).
 Iterators constructed using these special types would often permit optimizations.
 
 !!! warning 
@@ -286,6 +288,20 @@ abstract type ZeroClampedRange <: PartiallySpecifiedRange end
 Base.isempty(::PartiallySpecifiedRange) = false
 
 """
+    SingleValuedRange(n::Int)
+
+The range `n:n`.
+"""
+struct SingleValuedRange <: AbstractUnitRange{Int}
+    n :: Int
+end
+Base.isempty(::SingleValuedRange) = false
+Base.first(x::SingleValuedRange) = x.n
+Base.last(x::SingleValuedRange) = x.n
+Base.length(x::SingleValuedRange) = 1
+Base.show(io::IO, x::SingleValuedRange) = print(io, repr(x.n), ":", repr(x.n))
+
+"""
     ZeroTo(l::Int)
 
 The range `0:l` for an `l ≥ 0`.
@@ -302,7 +318,6 @@ Base.isempty(::ZeroTo) = false
 Base.first(::ZeroTo) = 0
 Base.last(r::ZeroTo) = r.l
 Base.show(io::IO, r::ZeroTo) = print(io, "ZeroTo(", repr(r.l), ")")
-
 
 """
     ToZero(l::Int)
@@ -794,6 +809,20 @@ end
     nskip(mr, l) + m - first(m_range(mr,l)) + 1
 end
 
+# Special methods if one of the ranges is single valued
+function modeindex(mr::Union{LM{<:AbstractUnitRange, SingleValuedRange}, ML{<:AbstractUnitRange, SingleValuedRange}}, l::Integer, m::Integer)
+    @boundscheck check_if_mode_present(mr, l, m)
+    l - first(l_range(mr)) + 1
+end
+function modeindex(mr::Union{LM{SingleValuedRange, <:AbstractUnitRange}, ML{SingleValuedRange, <:AbstractUnitRange}}, l::Integer, m::Integer)
+    @boundscheck check_if_mode_present(mr, l, m)
+    m - first(m_range(mr)) + 1
+end
+function modeindex(mr::Union{LM{SingleValuedRange, SingleValuedRange}, ML{SingleValuedRange, SingleValuedRange}}, l::Integer, m::Integer)
+    @boundscheck check_if_mode_present(mr, l, m)
+    1
+end
+
 @inline function nskip(mr::L2L1Triangle, l1)
 
     Nskip = 0
@@ -839,16 +868,28 @@ end
 Base.length(mr::ModeRange) = @inbounds modeindex(mr, last(mr))
 
 # Optimized definition
-function Base.length(mr::Union{LM{<:AbstractUnitRange{Int}, FullRange}, ML{<:AbstractUnitRange{Int}, FullRange}})
+function Base.length(mr::Union{LM{<:AbstractUnitRange, FullRange}, ML{<:AbstractUnitRange, FullRange}})
     # 2l + 1 m's for each l
     l_min, l_max = firstlast(l_range(mr))
     (l_max + 1)^2 - l_min^2
 end
-function Base.length(mr::Union{LM{<:AbstractUnitRange{Int}, <:ZeroClampedRange}, ML{<:AbstractUnitRange{Int}, <:ZeroClampedRange}})
+function Base.length(mr::Union{LM{<:AbstractUnitRange, <:ZeroClampedRange}, ML{<:AbstractUnitRange, <:ZeroClampedRange}})
     # l + 1 m's for each l
     l_min, l_max = firstlast(l_range(mr))
     div((1 + l_max - l_min)*(2 + l_max + l_min),2)
 end
+
+# Special methods for single-valued ranges
+for DT in [:(<:AbstractUnitRange), :(<:ZeroClampedRange), :FullRange]
+    @eval function Base.length(mr::Union{LM{$DT, SingleValuedRange}, ML{$DT, SingleValuedRange}})
+        length(l_range(mr))
+    end
+    @eval function Base.length(mr::Union{LM{SingleValuedRange, $DT}, ML{SingleValuedRange, $DT}})
+        length(m_range(mr))
+    end 
+end
+
+Base.length(mr::Union{LM{SingleValuedRange, SingleValuedRange}, ML{SingleValuedRange, SingleValuedRange}}) = 1
 
 Base.firstindex(mr::ModeRange) = 1
 Base.lastindex(mr::ModeRange) = length(mr)

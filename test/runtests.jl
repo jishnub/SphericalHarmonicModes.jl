@@ -33,6 +33,15 @@ import SphericalHarmonicModes: flip
 	        @test last(r) == 0
 	        @test !isempty(r)
 	    end
+	    @testset "SingleValuedRange" begin
+	    	n = 3
+	        r = SingleValuedRange(n)
+	        @test r == n:n
+	        @test first(r) == n
+	        @test last(r) == n
+	        @test length(r) == 1
+	        @test !isempty(r)
+	    end
 	end
 
 	@testset "LM" begin
@@ -143,7 +152,7 @@ end
 
 	function testlength(iterated_length, mr)
 		@test begin
-			res = length(mr) == iterated_length(mr)
+			res = length(mr) == iterated_length(mr) == length(collect(mr))
 			if !res
 				@show mr
 			end
@@ -158,7 +167,6 @@ end
 								x->sum(length(l_range(x,m)) for m in m_range(x)))
 
 	@testset "ML" begin
-
 		for l_min=0:l_cutoff, l_max=l_min:l_cutoff
 
 			for T in [FullRange, ZeroTo, ToZero]
@@ -167,7 +175,19 @@ end
 
 				mr = ML(ZeroTo(l_max), T)
 				testlength(iterated_length, mr)
+
+				mr = ML(SingleValuedRange(l_min), T)
+				testlength(iterated_length, mr)
 			end
+
+			mr = ML(l_min:l_min, SingleValuedRange(l_min))
+			testlength(iterated_length, mr)
+
+			mr = ML(ZeroTo(l_min), SingleValuedRange(l_min))
+			testlength(iterated_length, mr)
+
+			mr = ML(SingleValuedRange(l_min), SingleValuedRange(l_min))
+			testlength(iterated_length, mr)
 
 			for m_min=-l_max:l_max, m_max=m_min:l_max
 		
@@ -180,7 +200,6 @@ end
 	end
 
 	@testset "LM" begin
-		
 		for l_min=0:l_cutoff, l_max=l_min:l_cutoff
 			
 			for T in [FullRange, ZeroTo, ToZero]
@@ -189,7 +208,19 @@ end
 
 				mr = LM(ZeroTo(l_max), T)
 				testlength(iterated_length, mr)
+
+				mr = LM(SingleValuedRange(l_min), T)
+				testlength(iterated_length, mr)
 			end
+
+			mr = LM(l_min:l_min, SingleValuedRange(l_min))
+			testlength(iterated_length, mr)
+
+			mr = LM(ZeroTo(l_min), SingleValuedRange(l_min))
+			testlength(iterated_length, mr)
+
+			mr = LM(SingleValuedRange(l_min), SingleValuedRange(l_min))
+			testlength(iterated_length, mr)
 
 			for m_min=-l_max:l_max, m_max=m_min:l_max
 			
@@ -201,7 +232,7 @@ end
 		end
 	end
 
-	@testset "LM==ML" begin
+	@testset "LM == ML" begin
 	    for l_min=0:l_cutoff, l_max=l_min:l_cutoff
 
 	    	for T in [FullRange, ZeroTo, ToZero]
@@ -212,7 +243,23 @@ end
 		    	m1 = LM(ZeroTo(l_max), T)
 				m2 = ML(ZeroTo(l_max), T)
 				@test length(m1) == length(m2)
+
+				m1 = LM(SingleValuedRange(l_min), T)
+				m2 = ML(SingleValuedRange(l_min), T)
+				@test length(m1) == length(m2)
 			end
+
+			m1 = LM(l_min:l_min, SingleValuedRange(l_min))
+			m2 = ML(l_min:l_min, SingleValuedRange(l_min))
+			@test length(m1) == length(m2)
+
+			m1 = LM(ZeroTo(l_min), SingleValuedRange(l_min))
+			m1 = ML(ZeroTo(l_min), SingleValuedRange(l_min))
+			@test length(m1) == length(m2)
+
+			m1 = LM(SingleValuedRange(l_min), SingleValuedRange(l_min))
+			m2 = ML(SingleValuedRange(l_min), SingleValuedRange(l_min))
+			@test length(m1) == length(m2)
 
 	    	for m_min=-l_max:l_max,m_max=m_min:l_max
 		    	
@@ -353,32 +400,42 @@ end
 
 	modeindex2(m::SHModeRange,(s,t)::Tuple) = modeindex(m,s,t)
 
+	function testmodeindex(mr)
+		for (ind,(s,t)) in enumerate(mr)
+			@test modeindex(mr,(s,t)) == modeindex(mr,s,t) == modeindex2(mr,s,t) == ind
+		end
+	end
+
 	l_cutoff = 5
 	@testset "LM" begin
 		for l_min=0:l_cutoff, l_max=l_min:l_cutoff
 
 			for MT in [ZeroTo, ToZero, FullRange]
 				mr = LM(l_min:l_max, MT)
-				
-				for (ind,(s,t)) in enumerate(mr)
-					@test modeindex(mr,(s,t)) == modeindex(mr,s,t) == modeindex2(mr,s,t) == ind
-				end
+				testmodeindex(mr)
 
 				mr = LM(ZeroTo(l_max), MT)
-				for (ind,(s,t)) in enumerate(mr)
-					@test modeindex(mr,(s,t)) == modeindex(mr,s,t) == modeindex2(mr,s,t) == ind
-				end
+				testmodeindex(mr)
+				
+				mr = LM(SingleValuedRange(l_min), MT)
+				testmodeindex(mr)
 			end
+
+			mr = LM(l_min:l_max, SingleValuedRange(l_min))
+			testmodeindex(mr)
+
+			mr = LM(ZeroTo(l_max), SingleValuedRange(l_min))
+			testmodeindex(mr)
+			
+			mr = LM(SingleValuedRange(l_min), SingleValuedRange(l_min))
+			testmodeindex(mr)
 			
 			for m_min=-l_max:l_max, m_max=m_min:l_max
 				
 				l_min_trimmed = max(l_min,max(m_min,-m_max))
 			
 				mr = LM(l_min_trimmed:l_max, m_min:m_max)
-
-				for (ind,(s,t)) in enumerate(mr)
-					@test modeindex(mr,(s,t)) == modeindex(mr,s,t) == modeindex2(mr,s,t) == ind
-				end
+				testmodeindex(mr)
 			end
 		end
 	end
@@ -388,26 +445,30 @@ end
 
 			for MT in [ZeroTo, ToZero, FullRange]
 				mr = ML(l_min:l_max, MT)
-				
-				for (ind,(s,t)) in enumerate(mr)
-					@test modeindex(mr,(s,t)) == modeindex(mr,s,t) == modeindex2(mr,s,t) == ind
-				end
+				testmodeindex(mr)
 
 				mr = ML(ZeroTo(l_max), MT)
-				for (ind,(s,t)) in enumerate(mr)
-					@test modeindex(mr,(s,t)) == modeindex(mr,s,t) == modeindex2(mr,s,t) == ind
-				end
+				testmodeindex(mr)
+
+				mr = ML(SingleValuedRange(l_min), MT)
+				testmodeindex(mr)
 			end
+
+			mr = ML(l_min:l_max, SingleValuedRange(l_min))
+			testmodeindex(mr)
+
+			mr = ML(ZeroTo(l_max), SingleValuedRange(l_min))
+			testmodeindex(mr)
+			
+			mr = ML(SingleValuedRange(l_min), SingleValuedRange(l_min))
+			testmodeindex(mr)
 
 			for m_min=-l_max:l_max, m_max=m_min:l_max
 			
 				l_min_trimmed = max(l_min,max(m_min,-m_max))
 
-				m2 = ML(l_min_trimmed:l_max, m_min:m_max)
-
-				for (ind,(s,t)) in enumerate(m2)
-					@test modeindex(m2,(s,t)) == modeindex(m2,s,t) == modeindex2(m2,s,t) == ind
-				end
+				mr = ML(l_min_trimmed:l_max, m_min:m_max)
+				testmodeindex(mr)
 			end
 		end
 	end
@@ -604,10 +665,10 @@ end
     	show(io, MIME"text/plain"(), x)
     end
     
+    testshow(io, SingleValuedRange(2))
     testshow(io, ZeroTo(2))
     testshow(io, ToZero(2))
     testshow(io, FullRange(2))
-    testshow(io, ZeroTo(2))
 
     testshow(io, LM(1:2,1:1))
     testshow(io, ML(1:2,1:1))
