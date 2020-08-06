@@ -14,6 +14,11 @@ import SphericalHarmonicModes: flip
 	        @test first(r) == 0
 	        @test last(r) == 3
 	        @test !isempty(r)
+
+	        r = ZeroTo(UInt8(3))
+			@test first(r) == 0
+	        @test last(r) == 3
+	        @test !isempty(r)	        
 	    end
 	    @testset "FullRange" begin
 	        r = FullRange(3)
@@ -438,6 +443,8 @@ end
 				testmodeindex(mr)
 			end
 		end
+
+		@test_throws ModeMissingError modeindex(LM(1:1), (2,2))
 	end
 
 	@testset "ML" begin
@@ -471,6 +478,8 @@ end
 				testmodeindex(mr)
 			end
 		end
+
+		@test_throws ModeMissingError modeindex(ML(1:1), (2,2))
 	end
 
 	@testset "L2L1Triangle" begin
@@ -674,6 +683,6 @@ end
     testshow(io, ML(1:2,1:1))
     testshow(io, L2L1Triangle(1:2,1))
 
-    showerror(io, ModeMissingError(2,2,LM(1:1)))
-    showerror(io, ModeMissingError(3,3,L2L1Triangle(1:1,1)))
+    showerror(io, ModeMissingError(LM(1:1), (2,2)) )
+    showerror(io, ModeMissingError(L2L1Triangle(1:1,1), (3,3)) )
 end

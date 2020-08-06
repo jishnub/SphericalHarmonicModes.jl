@@ -23,7 +23,7 @@ abstract type ModeRange end
 Abstract supertype of iterators that loop over `(l,m)` pairs. 
 The types [`LM`](@ref) and [`ML`](@ref) are subtypes of this.
 """
-abstract type SHModeRange <: ModeRange end
+abstract type SHModeRange{LT,MT} <: ModeRange end
 
 Base.eltype(::SHModeRange) = Tuple{Int,Int}
 
@@ -71,7 +71,7 @@ julia> r |> collect
 
 See also: [`ML`](@ref)
 """
-struct LM{LT,MT} <: SHModeRange
+struct LM{LT,MT} <: SHModeRange{LT,MT}
     l_range :: LT
     m_range :: MT
 
@@ -125,7 +125,7 @@ julia> r |> collect
 
 See also: [`LM`](@ref)
 """
-struct ML{LT,MT} <: SHModeRange
+struct ML{LT,MT} <: SHModeRange{LT,MT}
     l_range :: LT
     m_range :: MT
 
@@ -249,23 +249,25 @@ throw_mboundserror(l_max, m) =
 ensure_nonempty(r) = isempty(r) && throw(ArgumentError("range of modes must not be empty, received $r"))
 
 struct ModeMissingError{M,T} <: Exception
-    firstmode :: T
-    secondmode :: T
     itr :: M
+    mode :: T
 end
 
 Base.showerror(io::IO, e::ModeMissingError{<:SHModeRange}) = 
-    print(io,"Mode with (l=",e.firstmode, ",m=",e.secondmode,")",
+    print(io,"Mode with (l=",e.mode[1], ",m=",e.mode[2],")",
     " is not included in the range given by ",e.itr)
 
 Base.showerror(io::IO, e::ModeMissingError{L2L1Triangle}) = 
-    print(io,"Mode with (l2=",e.firstmode,",l1=",e.secondmode,")",
+    print(io,"Mode with (l2=",e.mode[1],",l1=",e.mode[2],")",
     " is not included in the range given by ",e.itr)
 
-function ensure_nonnegative(l::Integer)
-    l >= zero(l) || throw(
-        ArgumentError("l = $l does not correspond to a valid mode"))
+function throw_modeerror(l)
+    throw(ArgumentError("l = $l does not correspond to a valid mode"))
 end
+function ensure_nonnegative(l::Integer)
+    l >= zero(l) || throw_modeerror(l)
+end
+ensure_nonnegative(l::Unsigned) = true
 
 function check_if_lm_range_is_valid(l_min, l_max, m_min, m_max)
     map(ensure_nonnegative, l_min)
@@ -279,8 +281,10 @@ function check_if_lm_range_is_valid(l_min, l_max, m_min, m_max)
     end
 end
 
-@inline function check_if_mode_present(mr, l, m)
-    (l,m) in mr || throw(ModeMissingError(l,m,mr))
+throw_modemissingerror(mr, mode) = throw(ModeMissingError(mr, mode))
+
+@inline function checkmode(mr, mode)
+    mode in mr || throw_modemissingerror(mr, mode)
 end
 
 abstract type PartiallySpecifiedRange <: AbstractUnitRange{Int} end
@@ -309,7 +313,7 @@ The range `0:l` for an `l ≥ 0`.
 struct ZeroTo <: ZeroClampedRange
     l :: Int
 
-    function ZeroTo(l::Int)
+    function ZeroTo(l)
         ensure_nonnegative(l)
         new(l)
     end
@@ -317,7 +321,7 @@ end
 Base.isempty(::ZeroTo) = false
 Base.first(::ZeroTo) = 0
 Base.last(r::ZeroTo) = r.l
-Base.show(io::IO, r::ZeroTo) = print(io, "ZeroTo(", repr(r.l), ")")
+Base.show(io::IO, r::ZeroTo) = print(io, "0:", repr(r.l))
 
 """
     ToZero(l::Int)
@@ -506,7 +510,7 @@ julia> m_range(r, 2)
     max(-l, m_min):min(l, m_max)
 end
 # Optimized methods for special m-ranges
-@inline function m_range(mr::Union{LM{<:Any,T},ML{<:Any,T}}, l::Integer) where {T<:PartiallySpecifiedRange}
+@inline function m_range(mr::SHModeRange{<:Any,T}, l::Integer) where {T<:PartiallySpecifiedRange}
     T(l)
 end
 
@@ -654,7 +658,10 @@ julia> modeindex(r, (3,2))
 ERROR: Mode with (l=3,m=2) is not included in the range given by LM(1:2, 1:2)
 ```
 """
-@propagate_inbounds modeindex(mr::ModeRange, T::Tuple{Vararg{Integer}}) = modeindex(mr, T...)
+@propagate_inbounds function modeindex(mr::ModeRange, modetup::Tuple{Vararg{Integer}})
+    @boundscheck checkmode(mr, modetup)
+    modeindex(mr, modetup...)
+end
 
 # Nskip = sum(length(l_range(mr,m_i)) fot m_i=mr.m_min:m-1)
 @inline function nskip(mr::LM, m)
@@ -753,10 +760,8 @@ end
     return Nskip
 end
 
-@inline function modeindex(mr::LM, l::Integer, m::Integer)
-    @boundscheck check_if_mode_present(mr, l, m)
-
-    nskip(mr, m) + l - first(l_range(mr,m)) + 1
+@inline function modeindex(mr::LM, l, m)
+    nskip(mr, m) + l - first(l_range(mr, m)) + 1
 end
 
 # Nskip = sum(length(m_range(mr,l_i)) for l_i=mr.l_min:l-1)
@@ -803,25 +808,18 @@ end
     div((l - l_min)*(l + l_min + 1), 2)
 end
 
-@inline function modeindex(mr::ML, l::Integer, m::Integer)
-    @boundscheck check_if_mode_present(mr, l, m)
-
-    nskip(mr, l) + m - first(m_range(mr,l)) + 1
+@inline function modeindex(mr::ML, l, m)
+    nskip(mr, l) + m - first(m_range(mr, l)) + 1
 end
 
 # Special methods if one of the ranges is single valued
-function modeindex(mr::Union{LM{<:AbstractUnitRange, SingleValuedRange}, ML{<:AbstractUnitRange, SingleValuedRange}}, l::Integer, m::Integer)
-    @boundscheck check_if_mode_present(mr, l, m)
+@inline function modeindex(mr::Union{LM{<:AbstractUnitRange, SingleValuedRange}, ML{<:AbstractUnitRange, SingleValuedRange}}, l, m)
     l - first(l_range(mr)) + 1
 end
-function modeindex(mr::Union{LM{SingleValuedRange, <:AbstractUnitRange}, ML{SingleValuedRange, <:AbstractUnitRange}}, l::Integer, m::Integer)
-    @boundscheck check_if_mode_present(mr, l, m)
+@inline function modeindex(mr::Union{LM{SingleValuedRange, <:AbstractUnitRange}, ML{SingleValuedRange, <:AbstractUnitRange}}, l, m)
     m - first(m_range(mr)) + 1
 end
-function modeindex(mr::Union{LM{SingleValuedRange, SingleValuedRange}, ML{SingleValuedRange, SingleValuedRange}}, l::Integer, m::Integer)
-    @boundscheck check_if_mode_present(mr, l, m)
-    1
-end
+@inline modeindex(mr::Union{LM{SingleValuedRange, SingleValuedRange}, ML{SingleValuedRange, SingleValuedRange}}, l, m) = 1
 
 @inline function nskip(mr::L2L1Triangle, l1)
 
@@ -857,10 +855,9 @@ end
     Nskip
 end
 
-@inline function modeindex(mr::L2L1Triangle, l2::Integer, l1::Integer)
+@inline function modeindex(mr::L2L1Triangle, l2, l1)
     # Check if l1 and l2 supplied correspond to valid modes
-    @boundscheck map(ensure_nonnegative,(l1,l2))
-    @boundscheck check_if_mode_present(mr,l2,l1)
+    @boundscheck map(ensure_nonnegative, (l1,l2))
 
     nskip(mr, l1) + l2 - first(l2_range(mr,l1)) + 1
 end
@@ -868,12 +865,12 @@ end
 Base.length(mr::ModeRange) = @inbounds modeindex(mr, last(mr))
 
 # Optimized definition
-function Base.length(mr::Union{LM{<:AbstractUnitRange, FullRange}, ML{<:AbstractUnitRange, FullRange}})
+function Base.length(mr::SHModeRange{<:AbstractUnitRange, FullRange})
     # 2l + 1 m's for each l
     l_min, l_max = firstlast(l_range(mr))
     (l_max + 1)^2 - l_min^2
 end
-function Base.length(mr::Union{LM{<:AbstractUnitRange, <:ZeroClampedRange}, ML{<:AbstractUnitRange, <:ZeroClampedRange}})
+function Base.length(mr::SHModeRange{<:AbstractUnitRange, <:ZeroClampedRange})
     # l + 1 m's for each l
     l_min, l_max = firstlast(l_range(mr))
     div((1 + l_max - l_min)*(2 + l_max + l_min),2)
@@ -881,15 +878,11 @@ end
 
 # Special methods for single-valued ranges
 for DT in [:(<:AbstractUnitRange), :(<:ZeroClampedRange), :FullRange]
-    @eval function Base.length(mr::Union{LM{$DT, SingleValuedRange}, ML{$DT, SingleValuedRange}})
-        length(l_range(mr))
-    end
-    @eval function Base.length(mr::Union{LM{SingleValuedRange, $DT}, ML{SingleValuedRange, $DT}})
-        length(m_range(mr))
-    end 
+    @eval Base.length(mr::SHModeRange{$DT, SingleValuedRange}) = length(l_range(mr))
+    @eval Base.length(mr::SHModeRange{SingleValuedRange, $DT}) = length(m_range(mr))
 end
 
-Base.length(mr::Union{LM{SingleValuedRange, SingleValuedRange}, ML{SingleValuedRange, SingleValuedRange}}) = 1
+Base.length(mr::SHModeRange{SingleValuedRange, SingleValuedRange}) = 1
 
 Base.firstindex(mr::ModeRange) = 1
 Base.lastindex(mr::ModeRange) = length(mr)
