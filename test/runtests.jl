@@ -51,6 +51,8 @@ import SphericalHarmonicModes: flip
 
 	@testset "LM" begin
 		@test eltype(LM(1:2)) == Tuple{Int,Int}
+		@test eltype(LM(big(1):big(2))) == Tuple{BigInt,Int}
+
 		@test LM{UnitRange{Int},UnitRange{Int}}(2:3,2:2) == LM(2:3,2:2)
 		@test LM(1:3,2:2) == LM(2:3,2:2)
 		@test LM(1:3) == LM(1:3, -3:3)
@@ -63,16 +65,32 @@ import SphericalHarmonicModes: flip
 		@test LM(ZeroTo(3), ZeroTo) == LM(0:3, 0:3)
 		@test LM(ZeroTo(3), ToZero) == LM(0:3, -3:0)
 
+		@test LM(SingleValuedRange(3), 1:2) == LM(3:3, 1:2)
+
 		@test_throws ArgumentError LM(1:0)
 		@test_throws ArgumentError LM(1:1, 1:0)
 		@test_throws ArgumentError LM(-1:1)
 		@test_throws ArgumentError LM(0:1, 1:3)
 		@test_throws ArgumentError LM(0:1, 3:3)
 		@test_throws ArgumentError LM(0:1, -3:0)
+		@test_throws ArgumentError LM(SingleValuedRange(1), 3:4)
+		@test_throws ArgumentError LM(SingleValuedRange(1), ZeroTo(3))
+		@test_throws ArgumentError LM(SingleValuedRange(1), ToZero(3))
+		@test_throws ArgumentError LM(SingleValuedRange(1), FullRange(3))
+
+		@testset "type-stability" begin
+		    for LT in (:ZeroTo, :SingleValuedRange), 
+		    	MT in (:ZeroTo, :ToZero, :FullRange)
+		    	@eval @test LM($LT(3), $MT) isa LM{$LT, $MT}
+		    end
+		    @test LM(ZeroTo(3), SingleValuedRange(2)) isa LM{UnitRange{Int}, SingleValuedRange}
+		    @test LM(SingleValuedRange(3), SingleValuedRange(2)) isa LM{SingleValuedRange, SingleValuedRange}
+		end
 	end
 
 	@testset "ML" begin
 		@test eltype(ML(1:2)) == Tuple{Int,Int}
+		@test eltype(ML(big(1):big(2))) == Tuple{BigInt,Int}
 		@test ML{UnitRange{Int},UnitRange{Int}}(2:3,2:2) == ML(2:3,2:2)
 		@test ML(1:3,2:2) == ML(2:3,2:2)
 		@test ML(1:3) == ML(1:3, -3:3)
@@ -85,12 +103,27 @@ import SphericalHarmonicModes: flip
 		@test ML(ZeroTo(3), ZeroTo) == ML(0:3, 0:3)
 		@test ML(ZeroTo(3), ToZero) == ML(0:3, -3:0)
 
+		@test ML(SingleValuedRange(3), 1:2) == ML(3:3, 1:2)
+
 		@test_throws ArgumentError ML(1:0)
 		@test_throws ArgumentError ML(1:1, 1:0)
 		@test_throws ArgumentError ML(-1:1)
 		@test_throws ArgumentError ML(0:1, 1:3)
 		@test_throws ArgumentError ML(0:1, 3:3)
 		@test_throws ArgumentError ML(0:1, -3:0)
+		@test_throws ArgumentError ML(SingleValuedRange(1), 3:4)
+		@test_throws ArgumentError ML(SingleValuedRange(1), ZeroTo(3))
+		@test_throws ArgumentError ML(SingleValuedRange(1), ToZero(3))
+		@test_throws ArgumentError ML(SingleValuedRange(1), FullRange(3))
+
+		@testset "type-stability" begin
+		    for LT in (:ZeroTo, :SingleValuedRange), 
+		    	MT in (:ZeroTo, :ToZero, :FullRange)
+		    	@eval @test ML($LT(3), $MT) isa ML{$LT, $MT}
+		    end
+		    @test ML(ZeroTo(3), SingleValuedRange(2)) isa ML{UnitRange{Int}, SingleValuedRange}
+		    @test ML(SingleValuedRange(3), SingleValuedRange(2)) isa ML{SingleValuedRange, SingleValuedRange}
+		end
 	end
 
 	@testset "L2L1Triangle " begin
@@ -159,7 +192,7 @@ end
 		@test begin
 			res = length(mr) == iterated_length(mr) == length(collect(mr))
 			if !res
-				@show mr
+				@show mr, typeof(mr)
 			end
 			res
 		end
@@ -259,7 +292,7 @@ end
 			@test length(m1) == length(m2)
 
 			m1 = LM(ZeroTo(l_min), SingleValuedRange(l_min))
-			m1 = ML(ZeroTo(l_min), SingleValuedRange(l_min))
+			m2 = ML(ZeroTo(l_min), SingleValuedRange(l_min))
 			@test length(m1) == length(m2)
 
 			m1 = LM(SingleValuedRange(l_min), SingleValuedRange(l_min))

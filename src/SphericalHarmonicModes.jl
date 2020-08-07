@@ -25,7 +25,7 @@ The types [`LM`](@ref) and [`ML`](@ref) are subtypes of this.
 """
 abstract type SHModeRange{LT,MT} <: ModeRange end
 
-Base.eltype(::SHModeRange) = Tuple{Int,Int}
+Base.eltype(::SHModeRange{<:AbstractRange{L},<:AbstractRange{M}}) where {L,M} = Tuple{L,M}
 
 """
     LM(l_range::AbstractUnitRange{<:Integer}, m_range::AbstractUnitRange{<:Integer})
@@ -136,18 +136,18 @@ struct ML{LT,MT} <: SHModeRange{LT,MT}
 end
 
 for DT in [:LM, :ML]
-    @eval function $DT(l_range::AbstractUnitRange{<:Integer}, m_range::AbstractUnitRange{<:Integer})
+    @eval function $DT(l_range::AbstractUnitRange{LI}, m_range::AbstractUnitRange{<:Integer}) where {LI<:Integer}
         l_min, l_max = firstlast(l_range)
         m_min, m_max = firstlast(m_range)
 
         check_if_lm_range_is_valid(l_min,l_max,m_min,m_max)
         
         if max(m_min,-m_max) > l_min
-            l_min = max(m_min,-m_max)
+            l_min = oftype(l_min, max(m_min,-m_max))
             l_range = l_min:l_max
         end
 
-        $DT{typeof(l_range),typeof(m_range)}(l_range, m_range)
+        $DT{UnitRange{LI},typeof(m_range)}(UnitRange{LI}(l_range), m_range)
     end
 end
 
@@ -269,9 +269,12 @@ function ensure_nonnegative(l::Integer)
 end
 ensure_nonnegative(l::Unsigned) = true
 
+function check_if_lm_range_is_valid(l_range::AbstractRange, m_range::AbstractRange)
+    check_if_lm_range_is_valid(first(l_range), last(l_range), first(m_range), last(m_range))
+end
 function check_if_lm_range_is_valid(l_min, l_max, m_min, m_max)
     map(ensure_nonnegative, l_min)
-    
+
     if abs(m_max) > l_max
         throw_mboundserror(l_max, m_max)
     end
@@ -364,10 +367,20 @@ Base.intersect(a::T, b::T) where {T<:ZeroClampedRange} = T(min(a.l, b.l))
 Base.intersect(a::ZeroClampedRange, b::ZeroClampedRange) = ZeroTo(0)
 
 for DT in [:LM, :ML]
-    @eval function $DT(l_range, ::Type{MT}) where {MT<:PartiallySpecifiedRange}
+    @eval function $DT(l_range::LT, ::Type{MT}) where {MT<:PartiallySpecifiedRange, LT<:AbstractUnitRange{<:Integer}}
         ensure_nonempty(l_range)
+        ensure_nonnegative(first(l_range))
         m_range = MT(last(l_range))
-        $DT(l_range, m_range)
+        $DT{LT,MT}(l_range, m_range)
+    end
+    @eval function $DT(l_range::SingleValuedRange, m_range::MT) where {MT<:AbstractUnitRange{<:Integer}}
+        ensure_nonempty(m_range)
+        check_if_lm_range_is_valid(l_range, m_range)
+        $DT{SingleValuedRange, MT}(l_range, m_range)
+    end
+    @eval function $DT(l_range::SingleValuedRange, m_range::SingleValuedRange)
+        check_if_lm_range_is_valid(l_range, m_range)
+        $DT{SingleValuedRange, SingleValuedRange}(l_range, m_range)
     end
     @eval $DT(l_range) = $DT(l_range, FullRange)
     
@@ -864,25 +877,25 @@ end
 
 Base.length(mr::ModeRange) = @inbounds modeindex(mr, last(mr))
 
-# Optimized definition
-function Base.length(mr::SHModeRange{<:AbstractUnitRange, FullRange})
-    # 2l + 1 m's for each l
-    l_min, l_max = firstlast(l_range(mr))
-    (l_max + 1)^2 - l_min^2
-end
-function Base.length(mr::SHModeRange{<:AbstractUnitRange, <:ZeroClampedRange})
-    # l + 1 m's for each l
-    l_min, l_max = firstlast(l_range(mr))
-    div((1 + l_max - l_min)*(2 + l_max + l_min),2)
-end
+# # Optimized definition
+# function Base.length(mr::SHModeRange{<:AbstractUnitRange, FullRange})
+#     # 2l + 1 m's for each l
+#     l_min, l_max = firstlast(l_range(mr))
+#     (l_max + 1)^2 - l_min^2
+# end
+# function Base.length(mr::SHModeRange{<:AbstractUnitRange, <:ZeroClampedRange})
+#     # l + 1 m's for each l
+#     l_min, l_max = firstlast(l_range(mr))
+#     div((1 + l_max - l_min)*(2 + l_max + l_min),2)
+# end
 
-# Special methods for single-valued ranges
-for DT in [:(<:AbstractUnitRange), :(<:ZeroClampedRange), :FullRange]
-    @eval Base.length(mr::SHModeRange{$DT, SingleValuedRange}) = length(l_range(mr))
-    @eval Base.length(mr::SHModeRange{SingleValuedRange, $DT}) = length(m_range(mr))
-end
+# # Special methods for single-valued ranges
+# for DT in [:(<:AbstractUnitRange), :(<:ZeroClampedRange), :FullRange]
+#     @eval Base.length(mr::SHModeRange{$DT, SingleValuedRange}) = length(l_range(mr))
+#     @eval Base.length(mr::SHModeRange{SingleValuedRange, $DT}) = length(m_range(mr))
+# end
 
-Base.length(mr::SHModeRange{SingleValuedRange, SingleValuedRange}) = 1
+# Base.length(mr::SHModeRange{SingleValuedRange, SingleValuedRange}) = 1
 
 Base.firstindex(mr::ModeRange) = 1
 Base.lastindex(mr::ModeRange) = length(mr)
