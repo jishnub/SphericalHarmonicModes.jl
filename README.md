@@ -1,7 +1,6 @@
 # SphericalHarmonicModes.jl
 
-[![Build Status](https://travis-ci.com/jishnub/SphericalHarmonicModes.jl.svg?branch=master)](https://travis-ci.com/jishnub/SphericalHarmonicModes.jl)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/jishnub/SphericalHarmonicModes.jl?svg=true)](https://ci.appveyor.com/project/jishnub/SphericalHarmonicModes-jl)
+![CI](https://github.com/jishnub/SphericalHarmonicModes.jl/workflows/CI/badge.svg?branch=master)
 [![Coverage Status](https://coveralls.io/repos/github/jishnub/SphericalHarmonicModes.jl/badge.svg?branch=master)](https://coveralls.io/github/jishnub/SphericalHarmonicModes.jl?branch=master)
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://jishnub.github.io/SphericalHarmonicModes.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://jishnub.github.io/SphericalHarmonicModes.jl/dev)
