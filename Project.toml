@@ -1,12 +1,14 @@
 name = "SphericalHarmonicModes"
 uuid = "0e9554e2-b38b-11e9-16d7-9d9abfec665a"
-version = "0.4.6"
+version = "0.4.7"
+
+[compat]
+Aqua = "0.5"
+julia = "1.0"
 
 [extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
-
-[compat]
-julia = "1.0"
+test = ["Aqua", "Test"]
