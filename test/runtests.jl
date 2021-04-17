@@ -1,10 +1,11 @@
 using Test,SphericalHarmonicModes
-import SphericalHarmonicModes: ModeMissingError, SHModeRange, 
-check_if_lm_range_is_valid
+import SphericalHarmonicModes: ModeMissingError, SHModeRange,
+check_if_lm_range_is_valid, flip
 
-import SphericalHarmonicModes: flip
-
-@test isempty(Test.detect_ambiguities(Base, Core, SphericalHarmonicModes))
+using Aqua
+@testset "project quality" begin
+    Aqua.test_all(SphericalHarmonicModes)
+end
 
 @testset "constructors" begin
 
@@ -18,7 +19,7 @@ import SphericalHarmonicModes: flip
 	        r = ZeroTo(UInt8(3))
 			@test first(r) == 0
 	        @test last(r) == 3
-	        @test !isempty(r)	        
+	        @test !isempty(r)
 	    end
 	    @testset "FullRange" begin
 	        r = FullRange(3)
@@ -79,7 +80,7 @@ import SphericalHarmonicModes: flip
 		@test_throws ArgumentError LM(SingleValuedRange(1), FullRange(3))
 
 		@testset "type-stability" begin
-		    for LT in (:ZeroTo, :SingleValuedRange), 
+		    for LT in (:ZeroTo, :SingleValuedRange),
 		    	MT in (:ZeroTo, :ToZero, :FullRange)
 		    	@eval @test LM($LT(3), $MT) isa LM{$LT, $MT}
 		    end
@@ -117,7 +118,7 @@ import SphericalHarmonicModes: flip
 		@test_throws ArgumentError ML(SingleValuedRange(1), FullRange(3))
 
 		@testset "type-stability" begin
-		    for LT in (:ZeroTo, :SingleValuedRange), 
+		    for LT in (:ZeroTo, :SingleValuedRange),
 		    	MT in (:ZeroTo, :ToZero, :FullRange)
 		    	@eval @test ML($LT(3), $MT) isa ML{$LT, $MT}
 		    end
@@ -138,7 +139,7 @@ import SphericalHarmonicModes: flip
 		@test mr == L2L1Triangle(2:10,3,5:8)
 		mr = L2L1Triangle(extrema(l_range)..., Δl_max, l2_range)
 		@test mr == L2L1Triangle(2:10,3,5:8)
-		
+
 		l_range = 10:10
 		l2_range = 1:8
 		mr = L2L1Triangle(l_range, Δl_max, l2_range)
@@ -173,7 +174,7 @@ end
 
 @testset "length" begin
 	l_cutoff=5
-	
+
 	function iterated_length_template(mr,f)
 		try
 			return f(mr)
@@ -228,10 +229,10 @@ end
 			testlength(iterated_length, mr)
 
 			for m_min=-l_max:l_max, m_max=m_min:l_max
-		
+
 				l_min_trimmed = max(l_min,max(m_min,-m_max))
 				mr = ML(l_min_trimmed:l_max, m_min:m_max)
-			
+
 				testlength(iterated_length, mr)
 			end
 		end
@@ -239,7 +240,7 @@ end
 
 	@testset "LM" begin
 		for l_min=0:l_cutoff, l_max=l_min:l_cutoff
-			
+
 			for T in [FullRange, ZeroTo, ToZero]
 				mr = LM(l_min:l_max, T)
 				testlength(iterated_length, mr)
@@ -261,10 +262,10 @@ end
 			testlength(iterated_length, mr)
 
 			for m_min=-l_max:l_max, m_max=m_min:l_max
-			
+
 				l_min_trimmed = max(l_min,max(m_min,-m_max))
 				mr = LM(l_min_trimmed:l_max, m_min:m_max)
-				
+
 				testlength(iterated_length, mr)
 			end
 		end
@@ -300,12 +301,12 @@ end
 			@test length(m1) == length(m2)
 
 	    	for m_min=-l_max:l_max,m_max=m_min:l_max
-		    	
+
 		    	l_min_trimmed = max(l_min,max(m_min,-m_max))
-				
+
 				m1 = LM(l_min_trimmed:l_max, m_min:m_max)
 				m2 = ML(l_min_trimmed:l_max, m_min:m_max)
-				
+
 				@test length(m1) == length(m2)
 			end
 		end
@@ -335,7 +336,7 @@ end
 						end
 						res
 					end
-				
+
 			end
 		end
 	end
@@ -384,7 +385,7 @@ end
 			m2 = ML(l_min:l_max, T)
 
 			@test sort(collect(m1)) == sort(collect(m2))
-			
+
 			m1 = LM(ZeroTo(l_max), T)
 			m2 = ML(ZeroTo(l_max), T)
 
@@ -392,7 +393,7 @@ end
 		end
 
 		for m_min=-l_max:l_max, m_max=m_min:l_max
-			
+
 			l_min_trimmed = max(l_min,max(m_min,-m_max))
 			l_range = l_min_trimmed:l_max
 			m_range = m_min:m_max
@@ -454,7 +455,7 @@ end
 
 				mr = LM(ZeroTo(l_max), MT)
 				testmodeindex(mr)
-				
+
 				mr = LM(SingleValuedRange(l_min), MT)
 				testmodeindex(mr)
 			end
@@ -464,14 +465,14 @@ end
 
 			mr = LM(ZeroTo(l_max), SingleValuedRange(l_min))
 			testmodeindex(mr)
-			
+
 			mr = LM(SingleValuedRange(l_min), SingleValuedRange(l_min))
 			testmodeindex(mr)
-			
+
 			for m_min=-l_max:l_max, m_max=m_min:l_max
-				
+
 				l_min_trimmed = max(l_min,max(m_min,-m_max))
-			
+
 				mr = LM(l_min_trimmed:l_max, m_min:m_max)
 				testmodeindex(mr)
 			end
@@ -499,12 +500,12 @@ end
 
 			mr = ML(ZeroTo(l_max), SingleValuedRange(l_min))
 			testmodeindex(mr)
-			
+
 			mr = ML(SingleValuedRange(l_min), SingleValuedRange(l_min))
 			testmodeindex(mr)
 
 			for m_min=-l_max:l_max, m_max=m_min:l_max
-			
+
 				l_min_trimmed = max(l_min,max(m_min,-m_max))
 
 				mr = ML(l_min_trimmed:l_max, m_min:m_max)
@@ -525,7 +526,7 @@ end
 
 			m3 = L2L1Triangle(l_min_trimmed,l_max_trimmed,Δl_max,s′min,s′max)
 			for (ind,(s′,s)) in enumerate(m3)
-				@test begin 
+				@test begin
 					res = modeindex(m3,(s′,s)) == modeindex(m3,s′,s) == modeindex2(m3,s′,s) == ind
 					if !res
 						println(m3)
@@ -540,14 +541,14 @@ end
 @testset "last" begin
 	@testset "ML" begin
 		m1 = ML(rand(1:5):rand(6:10))
-		@test last(collect(m1)) == last(m1)    
+		@test last(collect(m1)) == last(m1)
 	end
 
 	@testset "LM" begin
 		m2 = LM(rand(1:5):rand(6:10))
 		@test last(collect(m2)) == last(m2)
 	end
-	
+
 	@testset "L2L1Triangle" begin
 		m3 = L2L1Triangle(rand(1:3):rand(4:10),rand(1:5))
 		@test last(collect(m3)) == last(m3)
@@ -630,7 +631,7 @@ end
 			    l1 = $T(1:3)
 			    l2 = $T(1:3,1:3)
 			    @test intersect(l1,l2) == $T(1:3,1:3)
-			    
+
 			    for MT in [ZeroTo, ToZero]
 				    local l1 = $T(1:3, MT)
 				    local l2 = $T(1:3, MT)
@@ -706,7 +707,7 @@ end
     	show(io, x)
     	show(io, MIME"text/plain"(), x)
     end
-    
+
     testshow(io, SingleValuedRange(2))
     testshow(io, ZeroTo(2))
     testshow(io, ToZero(2))
@@ -718,4 +719,9 @@ end
 
     showerror(io, ModeMissingError(LM(1:1), (2,2)) )
     showerror(io, ModeMissingError(L2L1Triangle(1:1,1), (3,3)) )
+end
+
+@testset "to_indices" begin
+    modes = ML(0:3)
+    @test to_indices(zeros(), (modes,), (:,)) == (1:length(modes),)
 end

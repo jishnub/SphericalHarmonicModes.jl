@@ -20,7 +20,7 @@ abstract type ModeRange end
 """
     SphericalHarmonicModes.SHModeRange <: SphericalHarmonicModes.ModeRange
 
-Abstract supertype of iterators that loop over `(l,m)` pairs. 
+Abstract supertype of iterators that loop over `(l,m)` pairs.
 The types [`LM`](@ref) and [`ML`](@ref) are subtypes of this.
 """
 abstract type SHModeRange{LT,MT} <: ModeRange end
@@ -31,38 +31,38 @@ Base.eltype(::SHModeRange{<:AbstractRange{L},<:AbstractRange{M}}) where {L,M} = 
     LM(l_range::AbstractUnitRange{<:Integer}, m_range::AbstractUnitRange{<:Integer})
     LM(l_range::AbstractUnitRange{<:Integer}, [T = FullRange]) where T<:Union{FullRange, ZeroTo, ToZero}
 
-Return an iterator that loops over pairs of spherical harmonic modes `(l,m)`, 
-with `l` increasing faster than `m`. The loop runs over all the valid modes that 
-may be obtained from the ranges provided. If `m_range` is not specified, the loop 
-runs over all valid values of `m` for each `l`. 
+Return an iterator that loops over pairs of spherical harmonic modes `(l,m)`,
+with `l` increasing faster than `m`. The loop runs over all the valid modes that
+may be obtained from the ranges provided. If `m_range` is not specified, the loop
+runs over all valid values of `m` for each `l`.
 Neither `l_range` nor `m_range` may be empty.
 
-Optionally `m_range` may be provided implicitly using the range specifiers 
+Optionally `m_range` may be provided implicitly using the range specifiers
 [`FullRange`](@ref), [`ZeroTo`](@ref) and [`ToZero`](@ref), or as a [`SingleValuedRange`](@ref) type.
 Additionally, `l_range` may be of type [`ZeroTo`](@ref) or [`SingleValuedRange`](@ref).
 Iterators constructed using these special types would often permit optimizations.
 
-!!! warning 
-    An overlarge `l_range` will be curtailed to match the valid range compatible with 
+!!! warning
+    An overlarge `l_range` will be curtailed to match the valid range compatible with
     `m_range`. A smaller `l_range` than that compatible with `m_range` will raise an error.
 
 # Examples
 ```jldoctest
 julia> LM(0:1) |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (1, -1)
  (0, 0)
  (1, 0)
  (1, 1)
 
 julia> LM(0:1, 1:1) |> collect
-1-element Array{Tuple{Int64,Int64},1}:
+1-element $(Array{Tuple{Int64,Int64},1}):
  (1, 1)
 
 julia> r = LM(ZeroTo(1), FullRange);
 
 julia> r |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (1, -1)
  (0, 0)
  (1, 0)
@@ -85,38 +85,38 @@ end
     ML(l_range::AbstractUnitRange{<:Integer}, m_range::AbstractUnitRange{<:Integer})
     ML(l_range::AbstractUnitRange{<:Integer}, [T = FullRange]) where T<:Union{FullRange, ZeroTo, ToZero}
 
-Return an iterator that loops over pairs of spherical harmonic modes `(l,m)`, 
-with `m` increasing faster than `l`. The loop runs over all the valid modes that 
-may be obtained from the ranges provided.  If `m_range` is not specified, the loop 
+Return an iterator that loops over pairs of spherical harmonic modes `(l,m)`,
+with `m` increasing faster than `l`. The loop runs over all the valid modes that
+may be obtained from the ranges provided.  If `m_range` is not specified, the loop
 runs over all valid values of `m` for each `l`.
 Neither `l_range` nor `m_range` may be empty.
 
-Optionally `m_range` may be provided implicitly using the range specifiers 
+Optionally `m_range` may be provided implicitly using the range specifiers
 [`FullRange`](@ref), [`ZeroTo`](@ref) and [`ToZero`](@ref), or as a [`SingleValuedRange`](@ref) type.
 Additionally `l_range` may be of type [`ZeroTo`](@ref) or [`SingleValuedRange`](@ref).
 Iterators constructed using these special types would often permit optimizations.
 
-!!! warning 
-    An overlarge `l_range` will be curtailed to match the valid range compatible with 
+!!! warning
+    An overlarge `l_range` will be curtailed to match the valid range compatible with
     `m_range`. A smaller `l_range` than that compatible with `m_range` will raise an error.
 
 # Examples
 ```jldoctest
 julia> ML(0:1) |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (0, 0)
  (1, -1)
  (1, 0)
  (1, 1)
 
 julia> ML(0:1, 1:1) |> collect
-1-element Array{Tuple{Int64,Int64},1}:
+1-element $(Array{Tuple{Int64,Int64},1}):
  (1, 1)
 
 julia> r = ML(ZeroTo(1), FullRange);
 
 julia> r |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (0, 0)
  (1, -1)
  (1, 0)
@@ -141,7 +141,7 @@ for DT in [:LM, :ML]
         m_min, m_max = firstlast(m_range)
 
         check_if_lm_range_is_valid(l_min,l_max,m_min,m_max)
-        
+
         if max(m_min,-m_max) > l_min
             l_min = oftype(l_min, max(m_min,-m_max))
             l_range = l_min:l_max
@@ -155,18 +155,18 @@ end
     L2L1Triangle(l1_min::Int, l1_max::Int, Δl_max::Int, l2_min::Int = max(0, l1_min - Δl_max), l2_max = l1_max + Δl_max)
     L2L1Triangle(l1_range::AbstractUnitRange{Int}, Δl_max::Int, l2_range::AbstractUnitRange{Int})
 
-Return an iterator that loops over pairs of `(l2,l1)` where `l1` lies in `l1_range`, 
-`l2` lies in `l2_range`, and `l2` and `l1` obey the triangle condition 
+Return an iterator that loops over pairs of `(l2,l1)` where `l1` lies in `l1_range`,
+`l2` lies in `l2_range`, and `l2` and `l1` obey the triangle condition
 `max(0, l1 - Δl_max) ⩽ l2 ⩽ l1 + Δl_max`.
 If `l2_range` is not specified, it defaults to the maximal range permissible.
 
-!!! warning 
+!!! warning
     The ranges `l1_range` and `l2_range` will be curtailed to the minimal permissible subsets.
 
 # Examples
 ```jldoctest
 julia> L2L1Triangle(1:2, 2) |> collect
-9-element Array{Tuple{Int64,Int64},1}:
+9-element $(Array{Tuple{Int64,Int64},1}):
  (0, 1)
  (1, 1)
  (2, 1)
@@ -178,7 +178,7 @@ julia> L2L1Triangle(1:2, 2) |> collect
  (4, 2)
 
 julia> L2L1Triangle(2:3, 1) |> collect
-6-element Array{Tuple{Int64,Int64},1}:
+6-element $(Array{Tuple{Int64,Int64},1}):
  (1, 2)
  (2, 2)
  (3, 2)
@@ -187,7 +187,7 @@ julia> L2L1Triangle(2:3, 1) |> collect
  (4, 3)
 
 julia> L2L1Triangle(2:3, 1, 2:3) |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (2, 2)
  (3, 2)
  (2, 3)
@@ -209,12 +209,12 @@ struct L2L1Triangle <: ModeRange
 
         (l1_min > l1_max) && throw_ordererror("l1",l1_min,l1_max)
         (l2_min > l2_max) && throw_ordererror("l2",l2_min,l2_max)
-        
-        (l2_min > l1_max + Δl_max) && 
+
+        (l2_min > l1_max + Δl_max) &&
         throw(ArgumentError(
             "l2_min = $l2_min is greater than l1_max + Δl_max = $(l1_max + Δl_max)"*
             " for l1_max = $l1_max and Δl_max = $Δl_max"))
-        (l2_max < l1_min - Δl_max) && 
+        (l2_max < l1_min - Δl_max) &&
         throw(ArgumentError(
             "l2_max = $l2_max is less than l1_min - Δl_max = $(l1_min - Δl_max)"*
             " for l1_max = $l1_max and Δl_max = $Δl_max"))
@@ -226,7 +226,7 @@ struct L2L1Triangle <: ModeRange
         if l2_max > l1_max + Δl_max
             l2_max = l1_max + Δl_max
         end
-        
+
         (l2_min > l2_max) && throw_ordererror("l2",l2_min,l2_max)
 
         if l1_min < l2_min - Δl_max
@@ -237,13 +237,13 @@ struct L2L1Triangle <: ModeRange
         end
 
         (l1_min > l1_max) && throw_ordererror("l1",l1_min,l1_max)
-        
+
         new(l1_min,l1_max,Δl_max,l2_min,l2_max)
     end
 end
 Base.eltype(::L2L1Triangle) = Tuple{Int,Int}
 
-throw_mboundserror(l_max, m) = 
+throw_mboundserror(l_max, m) =
     throw(ArgumentError(" m = $m does not satisfy -$l_max ⩽ m ⩽ $l_max"))
 
 ensure_nonempty(r) = isempty(r) && throw(ArgumentError("range of modes must not be empty, received $r"))
@@ -253,11 +253,11 @@ struct ModeMissingError{M,T} <: Exception
     mode :: T
 end
 
-Base.showerror(io::IO, e::ModeMissingError{<:SHModeRange}) = 
+Base.showerror(io::IO, e::ModeMissingError{<:SHModeRange}) =
     print(io,"Mode with (l=",e.mode[1], ",m=",e.mode[2],")",
     " is not included in the range given by ",e.itr)
 
-Base.showerror(io::IO, e::ModeMissingError{L2L1Triangle}) = 
+Base.showerror(io::IO, e::ModeMissingError{L2L1Triangle}) =
     print(io,"Mode with (l2=",e.mode[1],",l1=",e.mode[2],")",
     " is not included in the range given by ",e.itr)
 
@@ -278,7 +278,7 @@ function check_if_lm_range_is_valid(l_min, l_max, m_min, m_max)
     if abs(m_max) > l_max
         throw_mboundserror(l_max, m_max)
     end
-    
+
     if abs(m_min) > l_max
         throw_mboundserror(l_max, m_min)
     end
@@ -383,10 +383,10 @@ for DT in [:LM, :ML]
         $DT{SingleValuedRange, SingleValuedRange}(l_range, m_range)
     end
     @eval $DT(l_range) = $DT(l_range, FullRange)
-    
+
     @eval $DT(m::$DT) = m
     @eval $DT(m::SHModeRange) = $DT(l_range(m), m_range(m))
-    
+
     @eval Base.:(==)(a::$DT, b::$DT) = l_range(a) == l_range(b) && m_range(a) == m_range(b)
 end
 
@@ -399,14 +399,14 @@ Return an iterator that flips the order in which the modes `(l,m)` are iterated 
 # Examples
 ```jldoctest
 julia> LM(0:1) |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (1, -1)
  (0, 0)
  (1, 0)
  (1, 1)
 
 julia> SphericalHarmonicModes.flip(LM(0:1)) |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (0, 0)
  (1, -1)
  (1, 0)
@@ -426,13 +426,11 @@ end
 
 function L2L1Triangle(l1_min::Integer, l1_max::Integer, Δl_max::Integer,
     l2_range::AbstractUnitRange{<:Integer})
-
     l2_min, l2_max = firstlast(l2_range)
     L2L1Triangle(l1_min, l1_max, Δl_max, l2_min, l2_max)
 end
 
 function L2L1Triangle(l1_range::AbstractUnitRange{<:Integer}, args...)
-    
     l1_min, l1_max = firstlast(l1_range)
     L2L1Triangle(l1_min, l1_max, args...)
 end
@@ -478,7 +476,7 @@ Return the subsection of the range of `l` spanned by the iterator for which
 julia> r = LM(1:2, 1:2);
 
 julia> collect(r)
-3-element Array{Tuple{Int64,Int64},1}:
+3-element $(Array{Tuple{Int64,Int64},1}):
  (1, 1)
  (2, 1)
  (2, 2)
@@ -506,7 +504,7 @@ Return the subsection of the range of `m` spanned by the iterator for which
 julia> r = LM(1:2, 1:2);
 
 julia> collect(r)
-3-element Array{Tuple{Int64,Int64},1}:
+3-element $(Array{Tuple{Int64,Int64},1}):
  (1, 1)
  (2, 1)
  (2, 2)
@@ -530,7 +528,7 @@ end
 """
     l2_range(mr::L2L1Triangle, l1::Integer)
 
-Return a subsection of the range of `l2` spanned by the iterator for which 
+Return a subsection of the range of `l2` spanned by the iterator for which
 `(l1,l2)` satisfy `l1 - mr.Δl_max ⩽ l2 ⩽ l1 + mr.Δl_max`.
 
 # Examples
@@ -538,7 +536,7 @@ Return a subsection of the range of `l2` spanned by the iterator for which
 julia> r = L2L1Triangle(1:2, 1);
 
 julia> collect(r)
-6-element Array{Tuple{Int64,Int64},1}:
+6-element $(Array{Tuple{Int64,Int64},1}):
  (0, 1)
  (1, 1)
  (2, 1)
@@ -588,7 +586,7 @@ function Base.iterate(mr::LM, state=((first_l(mr),first_m(mr)), 1))
 end
 
 function Base.iterate(mr::ML, state=((first_l(mr),first_m(mr)), 1))
-    
+
     (l,m), count = state
 
     if count > length(mr)
@@ -633,8 +631,8 @@ function Base.in((l,m)::NTuple{2,Integer}, mr::SHModeRange)
 end
 
 function Base.in((l2,l1)::NTuple{2,Integer}, mr::L2L1Triangle)
-    (mr.l1_min <= l1 <= mr.l1_max) && 
-    (mr.l2_min <= l2 <= mr.l2_max) && 
+    (mr.l1_min <= l1 <= mr.l1_max) &&
+    (mr.l2_min <= l2 <= mr.l2_max) &&
     (l2 in l2_range(mr,l1))
 end
 
@@ -651,7 +649,7 @@ Base.last(mr::L2L1Triangle) = (last(l2_range(mr,mr.l1_max)), mr.l1_max)
 """
     modeindex(mr::SphericalHarmonicModes.ModeRange, mode::Tuple)
 
-Return the index of `mode` in the iterator `mr`. Raise an error if `mode` 
+Return the index of `mode` in the iterator `mr`. Raise an error if `mode`
 is not present in `mr`.
 
 # Examples
@@ -659,7 +657,7 @@ is not present in `mr`.
 julia> r = LM(1:2, 1:2);
 
 julia> collect(r)
-3-element Array{Tuple{Int64,Int64},1}:
+3-element $(Array{Tuple{Int64,Int64},1}):
  (1, 1)
  (2, 1)
  (2, 2)
@@ -679,7 +677,7 @@ end
 # Nskip = sum(length(l_range(mr,m_i)) fot m_i=mr.m_min:m-1)
 @inline function nskip(mr::LM, m)
     Nskip = 0
-    
+
     l_min, l_max = firstlast(l_range(mr))
     m_min, m_max = firstlast(m_range(mr))
 
@@ -729,7 +727,7 @@ end
 @inline function nskip(mr::LM{<:AbstractUnitRange{Int}, ZeroTo}, m)
     l_min, l_max = firstlast(l_range(mr))
     Nl = l_max - l_min + 1
-    
+
     if iszero(m)
         Nskip = 0
     elseif m - 1 <= l_min
@@ -744,7 +742,7 @@ end
     l_min = first(l_range(mr))
     l_max = last(l_range(mr))
     Nl = l_max - l_min + 1
-    
+
     if m == -l_max
         Nskip = 0
     elseif m <= -l_min
@@ -766,7 +764,7 @@ end
     elseif m <= l_min + 1
         Nskip = div((Nl - 1) * Nl, 2) + Nl * (m + l_min)
     else
-        Nskip = Nl * (2l_min + 1) + 
+        Nskip = Nl * (2l_min + 1) +
             div( (Nl - 1) * Nl + (m - l_min - 1)*(2 + 2l_max - l_min - m) , 2)
     end
 
@@ -781,7 +779,7 @@ end
 @inline function nskip(mr::ML, l)
 
     Nskip = 0
-    
+
     l_min, l_max = firstlast(l_range(mr))
     m_min, m_max = firstlast(m_range(mr))
 
@@ -870,32 +868,31 @@ end
 
 @inline function modeindex(mr::L2L1Triangle, l2, l1)
     # Check if l1 and l2 supplied correspond to valid modes
-    @boundscheck map(ensure_nonnegative, (l1,l2))
-
+    @boundscheck foreach(ensure_nonnegative, (l1,l2))
     nskip(mr, l1) + l2 - first(l2_range(mr,l1)) + 1
 end
 
 Base.length(mr::ModeRange) = @inbounds modeindex(mr, last(mr))
 
 # # Optimized definition
-# function Base.length(mr::SHModeRange{<:AbstractUnitRange, FullRange})
-#     # 2l + 1 m's for each l
-#     l_min, l_max = firstlast(l_range(mr))
-#     (l_max + 1)^2 - l_min^2
-# end
-# function Base.length(mr::SHModeRange{<:AbstractUnitRange, <:ZeroClampedRange})
-#     # l + 1 m's for each l
-#     l_min, l_max = firstlast(l_range(mr))
-#     div((1 + l_max - l_min)*(2 + l_max + l_min),2)
-# end
+function Base.length(mr::SHModeRange{<:AbstractUnitRange, FullRange})
+    # 2l + 1 m's for each l
+    l_min, l_max = firstlast(l_range(mr))
+    (l_max + l_min + 1)*(l_max - l_min + 1)
+end
+function Base.length(mr::SHModeRange{<:AbstractUnitRange, <:ZeroClampedRange})
+    # l + 1 m's for each l
+    l_min, l_max = firstlast(l_range(mr))
+    ((1 + l_max - l_min)*(2 + l_max + l_min)) >> 1
+end
 
 # # Special methods for single-valued ranges
-# for DT in [:(<:AbstractUnitRange), :(<:ZeroClampedRange), :FullRange]
-#     @eval Base.length(mr::SHModeRange{$DT, SingleValuedRange}) = length(l_range(mr))
-#     @eval Base.length(mr::SHModeRange{SingleValuedRange, $DT}) = length(m_range(mr))
-# end
+for DT in [:(<:AbstractUnitRange), :(<:ZeroClampedRange), :FullRange]
+    @eval Base.length(mr::SHModeRange{$DT, SingleValuedRange}) = length(l_range(mr))
+    @eval Base.length(mr::SHModeRange{SingleValuedRange, $DT}) = length(m_range(mr))
+end
 
-# Base.length(mr::SHModeRange{SingleValuedRange, SingleValuedRange}) = 1
+Base.length(mr::SHModeRange{SingleValuedRange, SingleValuedRange}) = 1
 
 Base.firstindex(mr::ModeRange) = 1
 Base.lastindex(mr::ModeRange) = length(mr)
@@ -907,7 +904,11 @@ Base.lastindex(mr::ModeRange) = length(mr)
 @inline Base.axes(mr::ModeRange) = (Base.OneTo(length(mr)),)
 @inline Base.axes(mr::ModeRange, d::Integer) = d == 1 ? Base.OneTo(length(mr)) : d > 1 ? Base.OneTo(1) : throw(BoundsError(axes(mr),d))
 
-Base.keys(mr::ModeRange) = Base.OneTo(length(mr))
+Base.keys(mr::ModeRange) = axes(mr, 1)
+
+@inline function Base.uncolon(inds::Tuple{ModeRange,Vararg{Any}}, I::Tuple{Colon, Vararg{Any}})
+    Base.uncolon(axes(first(inds)), I)
+end
 
 # Intersect ranges
 
@@ -951,7 +952,7 @@ function Base.show(io::IO, ::MIME"text/plain", mr::L2L1Triangle)
     print(io, "Spherical harmonic modes (l2,l1) that satisfy ",
         "l1 - ",mr.Δl_max," ⩽ l2 ⩽ l1 + ",mr.Δl_max, ", with ",
         first(l2_range(mr))," ⩽ l2 ⩽ ",last(l2_range(mr))," and ",
-        first(l1_range(mr))," ⩽ l1 ⩽ ",last(l1_range(mr))       
+        first(l1_range(mr))," ⩽ l1 ⩽ ",last(l1_range(mr))
     )
 end
 
