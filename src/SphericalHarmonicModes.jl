@@ -49,20 +49,20 @@ Iterators constructed using these special types would often permit optimizations
 # Examples
 ```jldoctest
 julia> LM(0:1) |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (1, -1)
  (0, 0)
  (1, 0)
  (1, 1)
 
 julia> LM(0:1, 1:1) |> collect
-1-element Array{Tuple{Int64,Int64},1}:
+1-element $(Array{Tuple{Int64,Int64},1}):
  (1, 1)
 
 julia> r = LM(ZeroTo(1), FullRange);
 
 julia> r |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (1, -1)
  (0, 0)
  (1, 0)
@@ -103,20 +103,20 @@ Iterators constructed using these special types would often permit optimizations
 # Examples
 ```jldoctest
 julia> ML(0:1) |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (0, 0)
  (1, -1)
  (1, 0)
  (1, 1)
 
 julia> ML(0:1, 1:1) |> collect
-1-element Array{Tuple{Int64,Int64},1}:
+1-element $(Array{Tuple{Int64,Int64},1}):
  (1, 1)
 
 julia> r = ML(ZeroTo(1), FullRange);
 
 julia> r |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (0, 0)
  (1, -1)
  (1, 0)
@@ -166,7 +166,7 @@ If `l2_range` is not specified, it defaults to the maximal range permissible.
 # Examples
 ```jldoctest
 julia> L2L1Triangle(1:2, 2) |> collect
-9-element Array{Tuple{Int64,Int64},1}:
+9-element $(Array{Tuple{Int64,Int64},1}):
  (0, 1)
  (1, 1)
  (2, 1)
@@ -178,7 +178,7 @@ julia> L2L1Triangle(1:2, 2) |> collect
  (4, 2)
 
 julia> L2L1Triangle(2:3, 1) |> collect
-6-element Array{Tuple{Int64,Int64},1}:
+6-element $(Array{Tuple{Int64,Int64},1}):
  (1, 2)
  (2, 2)
  (3, 2)
@@ -187,7 +187,7 @@ julia> L2L1Triangle(2:3, 1) |> collect
  (4, 3)
 
 julia> L2L1Triangle(2:3, 1, 2:3) |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (2, 2)
  (3, 2)
  (2, 3)
@@ -399,14 +399,14 @@ Return an iterator that flips the order in which the modes `(l,m)` are iterated 
 # Examples
 ```jldoctest
 julia> LM(0:1) |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (1, -1)
  (0, 0)
  (1, 0)
  (1, 1)
 
 julia> SphericalHarmonicModes.flip(LM(0:1)) |> collect
-4-element Array{Tuple{Int64,Int64},1}:
+4-element $(Array{Tuple{Int64,Int64},1}):
  (0, 0)
  (1, -1)
  (1, 0)
@@ -476,7 +476,7 @@ Return the subsection of the range of `l` spanned by the iterator for which
 julia> r = LM(1:2, 1:2);
 
 julia> collect(r)
-3-element Array{Tuple{Int64,Int64},1}:
+3-element $(Array{Tuple{Int64,Int64},1}):
  (1, 1)
  (2, 1)
  (2, 2)
@@ -504,7 +504,7 @@ Return the subsection of the range of `m` spanned by the iterator for which
 julia> r = LM(1:2, 1:2);
 
 julia> collect(r)
-3-element Array{Tuple{Int64,Int64},1}:
+3-element $(Array{Tuple{Int64,Int64},1}):
  (1, 1)
  (2, 1)
  (2, 2)
@@ -536,7 +536,7 @@ Return a subsection of the range of `l2` spanned by the iterator for which
 julia> r = L2L1Triangle(1:2, 1);
 
 julia> collect(r)
-6-element Array{Tuple{Int64,Int64},1}:
+6-element $(Array{Tuple{Int64,Int64},1}):
  (0, 1)
  (1, 1)
  (2, 1)
@@ -657,7 +657,7 @@ is not present in `mr`.
 julia> r = LM(1:2, 1:2);
 
 julia> collect(r)
-3-element Array{Tuple{Int64,Int64},1}:
+3-element $(Array{Tuple{Int64,Int64},1}):
  (1, 1)
  (2, 1)
  (2, 2)
