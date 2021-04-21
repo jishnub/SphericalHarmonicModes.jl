@@ -67,6 +67,9 @@ end
 		@test LM(ZeroTo(3), ToZero) == LM(0:3, -3:0)
 
 		@test LM(SingleValuedRange(3), 1:2) == LM(3:3, 1:2)
+        @test LM(3, 1:2) == LM(3:3, 1:2)
+        @test LM(3) == LM(3:3, -3:3)
+        @test LM(3, 2) == LM(3:3, 2:2)
 
 		@test_throws ArgumentError LM(1:0)
 		@test_throws ArgumentError LM(1:1, 1:0)
