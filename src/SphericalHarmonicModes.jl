@@ -28,8 +28,8 @@ abstract type SHModeRange{LT,MT} <: ModeRange end
 Base.eltype(::SHModeRange{<:AbstractRange{L},<:AbstractRange{M}}) where {L,M} = Tuple{L,M}
 
 """
-    LM(l_range::AbstractUnitRange{<:Integer}, m_range::AbstractUnitRange{<:Integer})
-    LM(l_range::AbstractUnitRange{<:Integer}, [T = FullRange]) where T<:Union{FullRange, ZeroTo, ToZero}
+    LM(l_range::Union{Integer, AbstractUnitRange{<:Integer}}, m_range::Union{Integer, AbstractUnitRange{<:Integer}})
+    LM(l_range::Union{Integer, AbstractUnitRange{<:Integer}}, [T = FullRange]) where T<:Union{FullRange, ZeroTo, ToZero}
 
 Return an iterator that loops over pairs of spherical harmonic modes `(l,m)`,
 with `l` increasing faster than `m`. The loop runs over all the valid modes that
@@ -82,8 +82,8 @@ struct LM{LT,MT} <: SHModeRange{LT,MT}
 end
 
 """
-    ML(l_range::AbstractUnitRange{<:Integer}, m_range::AbstractUnitRange{<:Integer})
-    ML(l_range::AbstractUnitRange{<:Integer}, [T = FullRange]) where T<:Union{FullRange, ZeroTo, ToZero}
+    ML(l_range::Union{Integer, AbstractUnitRange{<:Integer}}, m_range::Union{Integer, AbstractUnitRange{<:Integer}})
+    ML(l_range::Union{Integer, AbstractUnitRange{<:Integer}}, [T = FullRange]) where T<:Union{FullRange, ZeroTo, ToZero}
 
 Return an iterator that loops over pairs of spherical harmonic modes `(l,m)`,
 with `m` increasing faster than `l`. The loop runs over all the valid modes that
@@ -382,7 +382,9 @@ for DT in [:LM, :ML]
         check_if_lm_range_is_valid(l_range, m_range)
         $DT{SingleValuedRange, SingleValuedRange}(l_range, m_range)
     end
-    @eval $DT(l_range) = $DT(l_range, FullRange)
+    @eval $DT(l_range::AbstractUnitRange{<:Integer}) = $DT(l_range, FullRange)
+    @eval $DT(l_range::AbstractUnitRange{<:Integer}, m::Integer) = $DT(l_range, SingleValuedRange(m))
+    @eval $DT(l::Integer, m_range...) = $DT(SingleValuedRange(l), m_range...)
 
     @eval $DT(m::$DT) = m
     @eval $DT(m::SHModeRange) = $DT(l_range(m), m_range(m))
