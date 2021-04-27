@@ -290,8 +290,8 @@ throw_modemissingerror(mr, mode) = throw(ModeMissingError(mr, mode))
     mode in mr || throw_modemissingerror(mr, mode)
 end
 
-abstract type PartiallySpecifiedRange <: AbstractUnitRange{Int} end
-abstract type ZeroClampedRange <: PartiallySpecifiedRange end
+abstract type PartiallySpecifiedRange{T} <: AbstractUnitRange{Int} end
+abstract type ZeroClampedRange{T} <: PartiallySpecifiedRange{T} end
 Base.isempty(::PartiallySpecifiedRange) = false
 
 """
@@ -313,15 +313,15 @@ Base.show(io::IO, x::SingleValuedRange) = print(io, repr(x.n), ":", repr(x.n))
 
 The range `0:l` for an `l ≥ 0`.
 """
-struct ZeroTo <: ZeroClampedRange
+struct ZeroTo{T} <: ZeroClampedRange{T}
     l :: Int
 
-    function ZeroTo(l)
+    function ZeroTo{T}(l) where {T}
         ensure_nonnegative(l)
-        new(l)
+        new{T}(l)
     end
 end
-Base.isempty(::ZeroTo) = false
+ZeroTo(l) = ZeroTo{false}(l)
 Base.first(::ZeroTo) = 0
 Base.last(r::ZeroTo) = r.l
 Base.show(io::IO, r::ZeroTo) = print(io, "0:", repr(r.l))
@@ -331,14 +331,15 @@ Base.show(io::IO, r::ZeroTo) = print(io, "0:", repr(r.l))
 
 The range `-l:0` for an `l ≥ 0`.
 """
-struct ToZero <: ZeroClampedRange
+struct ToZero{T} <: ZeroClampedRange{T}
     l :: Int
 
-    function ToZero(l)
+    function ToZero{T}(l) where {T}
         ensure_nonnegative(l)
-        new(l)
+        new{T}(l)
     end
 end
+ToZero(l) = ToZero{false}(l)
 Base.first(r::ToZero) = -r.l
 Base.last(::ToZero) = 0
 Base.show(io::IO, r::ToZero) = print(io,"-",repr(r.l),":0")
@@ -348,18 +349,20 @@ Base.show(io::IO, r::ToZero) = print(io,"-",repr(r.l),":0")
 
 The range `-l:l` for an `l ≥ 0`.
 """
-struct FullRange <: PartiallySpecifiedRange
+struct FullRange{T} <: PartiallySpecifiedRange{T}
     l :: Int
 
-    function FullRange(l)
+    function FullRange{T}(l) where {T}
         ensure_nonnegative(l)
-        new(l)
+        new{T}(l)
     end
 end
+FullRange(l) = FullRange{false}(l)
 Base.first(r::FullRange) = -r.l
 Base.last(r::FullRange) = r.l
 Base.show(io::IO, r::FullRange) = print(io, repr(-r.l),":",repr(r.l))
 
+Base.intersect(a::FullRange, b::FullRange) = FullRange(min(maximum(a), maximum(b)))
 Base.intersect(a::T, b::FullRange) where {T<:ZeroClampedRange} = T(min(a.l, b.l))
 Base.intersect(a::FullRange, b::T) where {T<:ZeroClampedRange} = T(min(a.l, b.l))
 
@@ -370,8 +373,8 @@ for DT in [:LM, :ML]
     @eval function $DT(l_range::LT, ::Type{MT}) where {MT<:PartiallySpecifiedRange, LT<:AbstractUnitRange{<:Integer}}
         ensure_nonempty(l_range)
         ensure_nonnegative(first(l_range))
-        m_range = MT(last(l_range))
-        $DT{LT,MT}(l_range, m_range)
+        m_range = MT{true}(last(l_range))
+        $DT{LT,MT{true}}(l_range, m_range)
     end
     @eval function $DT(l_range::SingleValuedRange, m_range::MT) where {MT<:AbstractUnitRange{<:Integer}}
         ensure_nonempty(m_range)
@@ -523,8 +526,8 @@ julia> m_range(r, 2)
     max(-l, m_min):min(l, m_max)
 end
 # Optimized methods for special m-ranges
-@inline function m_range(mr::SHModeRange{<:Any,T}, l::Integer) where {T<:PartiallySpecifiedRange}
-    T(l)
+@inline function m_range(mr::SHModeRange{<:Any,T}, l::Integer) where {T<:PartiallySpecifiedRange{true}}
+    intersect(m_range(mr), T(l))
 end
 
 """
@@ -709,15 +712,16 @@ end
     Nskip
 end
 
-@inline function nskip(mr::LM{ZeroTo, ZeroTo}, m)
+@inline function nskip(mr::LM{<:ZeroTo, ZeroTo{true}}, m)
     l_max = last(l_range(mr))
     div( (3 + 2l_max -m)*m , 2)
 end
-@inline function nskip(mr::LM{ZeroTo, ToZero}, m)
-    l_max = last(l_range(mr))
-    div( (l_max + m)*(l_max + m + 1) , 2)
+@inline function nskip(mr::LM{<:ZeroTo, ToZero{true}}, m)
+    l_max = maximum(l_range(mr))
+    m_min = minimum(m_range(mr))
+    (m - m_min)*(1 + 2l_max + m + m_min)÷2
 end
-@inline function nskip(mr::LM{ZeroTo, FullRange}, m)
+@inline function nskip(mr::LM{<:ZeroTo, FullRange{true}}, m)
     l_max = last(l_range(mr))
     if m <= 0
         Nskip = div( (l_max + m)*(l_max + m + 1) , 2)
@@ -726,7 +730,25 @@ end
     end
     return Nskip
 end
-@inline function nskip(mr::LM{<:AbstractUnitRange{Int}, ZeroTo}, m)
+@inline function nskip(mr::LM{<:AbstractUnitRange{Int}, ZeroTo{false}}, m)
+    l_min, l_max = firstlast(l_range(mr))
+    Nl = l_max - l_min + 1
+
+    if m == 0
+        Nskip = 0
+    elseif (m <= 1 || l_min == 0) && l_min - m >= -1
+        Nskip = 1 + l_max - l_min
+    elseif l_min > 0 && m > 1 && l_min - m >= -1
+        Nskip = (1 + l_max - l_min) * m
+    elseif l_min > 0 && l_min - m < -1
+        Nskip = (-l_min*(1 + l_min) + (3 + 2l_max-m)*m) ÷ 2
+    else
+        Nskip = (l_min - m)*(-3 -2l_max + l_min + m) ÷ 2
+    end
+
+    return Nskip
+end
+@inline function nskip(mr::LM{<:AbstractUnitRange{Int}, ZeroTo{true}}, m)
     l_min, l_max = firstlast(l_range(mr))
     Nl = l_max - l_min + 1
 
@@ -740,22 +762,7 @@ end
 
     return Nskip
 end
-@inline function nskip(mr::LM{<:AbstractUnitRange{Int}, ToZero}, m)
-    l_min = first(l_range(mr))
-    l_max = last(l_range(mr))
-    Nl = l_max - l_min + 1
-
-    if m == -l_max
-        Nskip = 0
-    elseif m <= -l_min
-        Nskip = div((l_max + m)*(l_max + m + 1), 2)
-    else
-        Nskip = div((Nl - 1) * Nl, 2) + Nl * (m + l_min)
-    end
-
-    return Nskip
-end
-@inline function nskip(mr::LM{<:AbstractUnitRange{Int}, FullRange}, m)
+@inline function nskip(mr::LM{<:AbstractUnitRange{Int}, FullRange{true}}, m)
     l_min, l_max = firstlast(l_range(mr))
     Nl = l_max - l_min + 1
 
@@ -811,14 +818,39 @@ end
 
     Nskip
 end
-@inline function nskip(mr::ML{<:AbstractUnitRange{Int},FullRange}, l)
+@inline function nskip(mr::ML{<:AbstractUnitRange{Int},FullRange{false}}, l)
+    l_min = first(l_range(mr))
+    m_max = maximum(m_range(mr))
+    T1 = l_min < m_max ? (min(m_max, l) - l_min)*(min(m_max,l) + l_min) : 0
+    T2 = l > m_max ? (2m_max + 1)*(l - max(l_min, m_max)) : 0
+    T1 + T2
+end
+@inline function nskip(mr::ML{<:AbstractUnitRange{Int},FullRange{true}}, l)
     l_min = first(l_range(mr))
     (l - l_min)*(l + l_min)
 end
 
-@inline function nskip(mr::ML{<:AbstractUnitRange{Int},<:ZeroClampedRange}, l)
-    l_min = first(l_range(mr))
-    div((l - l_min)*(l + l_min + 1), 2)
+@inline function nskip(mr::ML{<:AbstractUnitRange{Int}, ToZero{false}}, l)
+    m_min = minimum(m_range(mr))
+    l_min = minimum(l_range(mr))
+    T1 = l_min < -m_min ? (1 + min(-m_min, l) + l_min)*(-l_min + min(-m_min, l)) ÷ 2 : 0
+    T2 = l > -m_min ? (-m_min + 1)*(l - max(-m_min, l_min)) : 0
+    T1 + T2
+end
+@inline function nskip(mr::ML{<:AbstractUnitRange{Int}, ToZero{true}}, l)
+    l_min = minimum(l_range(mr))
+    (1 + l + l_min) * (l -l_min) ÷ 2
+end
+@inline function nskip(mr::ML{<:AbstractUnitRange{Int}, ZeroTo{false}}, l)
+    m_max = maximum(m_range(mr))
+    l_min = minimum(l_range(mr))
+    T1 = l_min < m_max ? (1 + l_min + min(m_max, l))*(min(m_max, l) - l_min) ÷ 2 : 0
+    T2 = l > m_max ? (m_max + 1)*(l - max(m_max, l_min)) : 0
+    T1 + T2
+end
+@inline function nskip(mr::ML{<:AbstractUnitRange{Int}, ZeroTo{true}}, l)
+    l_min = minimum(l_range(mr))
+    (1 + l_min + l)*(l - l_min) ÷ 2
 end
 
 @inline function modeindex(mr::ML, l, m)
@@ -833,6 +865,26 @@ end
     m - first(m_range(mr)) + 1
 end
 @inline modeindex(mr::Union{LM{SingleValuedRange, SingleValuedRange}, ML{SingleValuedRange, SingleValuedRange}}, l, m) = 1
+
+# May index with a continuous moderange
+# If both the indices are single valued, this is just a single mode
+Base.@propagate_inbounds function modeindex(mr::SHModeRange, m::SHModeRange{SingleValuedRange, SingleValuedRange})
+    modeindex(mr, first(m))
+end
+
+# The following return vector indices
+# if possible return AbstractUnitRanges
+Base.@propagate_inbounds function modeindex(mr::ML{<:AbstractUnitRange, T}, m::ML{<:AbstractUnitRange, T}) where {T <: PartiallySpecifiedRange{true}}
+    modeindex(mr, first(m)):modeindex(mr, last(m))
+end
+
+Base.@propagate_inbounds modeindex(mr::LM, m::LM{SingleValuedRange, SingleValuedRange}) = modeindex(mr, first(m))
+
+Base.@propagate_inbounds function modeindex(mr::LM, m::LM{<:AbstractUnitRange, SingleValuedRange})
+    modeindex(mr, first(m)):modeindex(mr, last(m))
+end
+
+modeindex(mr::SHModeRange, m::SHModeRange) = [modeindex(mr, mi) for mi in m]
 
 @inline function nskip(mr::L2L1Triangle, l1)
 
@@ -876,20 +928,8 @@ end
 
 Base.length(mr::ModeRange) = @inbounds modeindex(mr, last(mr))
 
-# # Optimized definition
-function Base.length(mr::SHModeRange{<:AbstractUnitRange, FullRange})
-    # 2l + 1 m's for each l
-    l_min, l_max = firstlast(l_range(mr))
-    (l_max + l_min + 1)*(l_max - l_min + 1)
-end
-function Base.length(mr::SHModeRange{<:AbstractUnitRange, <:ZeroClampedRange})
-    # l + 1 m's for each l
-    l_min, l_max = firstlast(l_range(mr))
-    ((1 + l_max - l_min)*(2 + l_max + l_min)) >> 1
-end
-
-# # Special methods for single-valued ranges
-for DT in [:(<:AbstractUnitRange), :(<:ZeroClampedRange), :FullRange]
+# Special methods for single-valued ranges
+for DT in [:(<:AbstractUnitRange), :ZeroTo, :ToZero, :FullRange]
     @eval Base.length(mr::SHModeRange{$DT, SingleValuedRange}) = length(l_range(mr))
     @eval Base.length(mr::SHModeRange{SingleValuedRange, $DT}) = length(m_range(mr))
 end
