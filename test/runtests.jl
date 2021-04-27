@@ -85,7 +85,7 @@ end
 		@testset "type-stability" begin
 		    for LT in (:ZeroTo, :SingleValuedRange),
 		    	MT in (:ZeroTo, :ToZero, :FullRange)
-		    	@eval @test LM($LT(3), $MT) isa LM{$LT, $MT}
+		    	@eval @test LM($LT(3), $MT) isa LM{<:$LT, <:$MT}
 		    end
 		    @test LM(ZeroTo(3), SingleValuedRange(2)) isa LM{UnitRange{Int}, SingleValuedRange}
 		    @test LM(SingleValuedRange(3), SingleValuedRange(2)) isa LM{SingleValuedRange, SingleValuedRange}
@@ -123,7 +123,7 @@ end
 		@testset "type-stability" begin
 		    for LT in (:ZeroTo, :SingleValuedRange),
 		    	MT in (:ZeroTo, :ToZero, :FullRange)
-		    	@eval @test ML($LT(3), $MT) isa ML{$LT, $MT}
+		    	@eval @test ML($LT(3), $MT) isa ML{<:$LT, <:$MT}
 		    end
 		    @test ML(ZeroTo(3), SingleValuedRange(2)) isa ML{UnitRange{Int}, SingleValuedRange}
 		    @test ML(SingleValuedRange(3), SingleValuedRange(2)) isa ML{SingleValuedRange, SingleValuedRange}
@@ -215,6 +215,24 @@ end
 				mr = ML(l_min:l_max, T)
 				testlength(iterated_length, mr)
 
+                mr = ML(l_min:l_max, T(0))
+                testlength(iterated_length, mr)
+                mr2 = ML(UnitRange(l_range(mr)), UnitRange(m_range(mr)))
+                @test begin
+                    res = length(mr) == length(mr2)
+                    if !res
+                        @show typeof(mr)
+                    end
+                    res
+                end
+                @test collect(mr) == collect(mr2)
+
+                mr = ML(l_min:l_max, T(l_min))
+                testlength(iterated_length, mr)
+                mr2 = ML(UnitRange(l_range(mr)), UnitRange(m_range(mr)))
+                @test length(mr) == length(mr2)
+                @test collect(mr) == collect(mr2)
+
 				mr = ML(ZeroTo(l_max), T)
 				testlength(iterated_length, mr)
 
@@ -247,6 +265,24 @@ end
 			for T in [FullRange, ZeroTo, ToZero]
 				mr = LM(l_min:l_max, T)
 				testlength(iterated_length, mr)
+
+                mr = LM(l_min:l_max, T(0))
+                testlength(iterated_length, mr)
+                mr2 = LM(UnitRange(l_range(mr)), UnitRange(m_range(mr)))
+                @test begin
+                    res = length(mr) == length(mr2)
+                    if !res
+                        @show typeof(mr)
+                    end
+                    res
+                end
+                @test collect(mr) == collect(mr2)
+
+                mr = LM(l_min:l_max, T(l_min))
+                testlength(iterated_length, mr)
+                mr2 = LM(UnitRange(l_range(mr)), UnitRange(m_range(mr)))
+                @test length(mr) == length(mr2)
+                @test collect(mr) == collect(mr2)
 
 				mr = LM(ZeroTo(l_max), T)
 				testlength(iterated_length, mr)
@@ -329,17 +365,16 @@ end
 			for l_min=0:l_cutoff,l_max=l_min:l_cutoff,Δl_max=0:l_cutoff,
 				l2_min=max(l_min-Δl_max,0):l_max+Δl_max,l2_max=l2_min:l_max+Δl_max
 
-					l_min_trimmed = max(l_min,l2_min - Δl_max)
-					l_max_trimmed = min(l_max,l2_max + Δl_max)
-					mr = L2L1Triangle(l_min_trimmed,l_max_trimmed,Δl_max,l2_min,l2_max)
-					@test begin
-						res = length(mr) == iterated_length(mr)
-						if !res
-							println(mr)
-						end
-						res
+				l_min_trimmed = max(l_min,l2_min - Δl_max)
+				l_max_trimmed = min(l_max,l2_max + Δl_max)
+				mr = L2L1Triangle(l_min_trimmed,l_max_trimmed,Δl_max,l2_min,l2_max)
+				@test begin
+					res = length(mr) == iterated_length(mr)
+					if !res
+						println(mr)
 					end
-
+					res
+				end
 			end
 		end
 	end
@@ -411,40 +446,18 @@ end
 
 @testset "modeindex" begin
 
-	function modeindex2(m::ML,s::Integer,t::Integer)
-		N_skip = 0
-		l_min = first(l_range(m))
-		for si in l_min:s-1
-			N_skip += length(m_range(m,si))
-		end
-
-		N_skip + searchsortedfirst(m_range(m,s),t)
-	end
-
-	function modeindex2(m::LM,s::Integer,t::Integer)
-		N_skip = 0
-		m_min = first(m_range(m))
-		for ti in m_min:t-1
-			N_skip += length(l_range(m,ti))
-		end
-
-		N_skip + searchsortedfirst(l_range(m,t),s)
-	end
-
-	function modeindex2(m::L2L1Triangle,s′::Integer,s::Integer)
-		N_skip = 0
-		for si in m.l1_min:s-1
-			N_skip += length(l2_range(m,si))
-		end
-
-		N_skip + searchsortedfirst(l2_range(m,s),s′)
-	end
-
-	modeindex2(m::SHModeRange,(s,t)::Tuple) = modeindex(m,s,t)
+	modeindex2(m, s::Integer, t::Integer) = modeindex2(m, (s,t))
+    modeindex2(m, (s,t)::Tuple) = findfirst(isequal((s,t)), m)
 
 	function testmodeindex(mr)
 		for (ind,(s,t)) in enumerate(mr)
-			@test modeindex(mr,(s,t)) == modeindex(mr,s,t) == modeindex2(mr,s,t) == ind
+			@test begin
+                res = modeindex(mr,(s,t)) == modeindex(mr,s,t) == modeindex2(mr,s,t) == ind
+                if !res
+                    @show mr, typeof(mr), s, t
+                end
+                res
+            end
 		end
 	end
 
@@ -459,9 +472,15 @@ end
 				mr = LM(ZeroTo(l_max), MT)
 				testmodeindex(mr)
 
+                mr = LM(ZeroTo(l_max), MT(l_max))
+                testmodeindex(mr)
+
 				mr = LM(SingleValuedRange(l_min), MT)
 				testmodeindex(mr)
 			end
+
+            mr = LM(1:4, ZeroTo(4))
+            @test modeindex(mr, (3,3)) == modeindex2(mr, (3,3))
 
 			mr = LM(l_min:l_max, SingleValuedRange(l_min))
 			testmodeindex(mr)
@@ -494,6 +513,9 @@ end
 				mr = ML(ZeroTo(l_max), MT)
 				testmodeindex(mr)
 
+                mr = ML(ZeroTo(l_max), MT(l_max))
+                testmodeindex(mr)
+
 				mr = ML(SingleValuedRange(l_min), MT)
 				testmodeindex(mr)
 			end
@@ -518,6 +540,28 @@ end
 
 		@test_throws ModeMissingError modeindex(ML(1:1), (2,2))
 	end
+
+    @testset "vector indexing" begin
+        mr = ML(0:4, ZeroTo)
+        (l,m) = first(mr)
+        mr2 = ML(l,m)
+        @test modeindex(mr, mr2) == modeindex(mr, l, m) == 1
+        @test modeindex(flip(mr), mr2) == modeindex(flip(mr), l, m)
+
+        for MT in [ZeroTo, FullRange, ToZero]
+            mr = ML(0:4, MT)
+            ms = ML(0:3, MT)
+            @test modeindex(mr, ms) == [modeindex(mr, i) for i in ms]
+            ms = ML(0:3, MT(3))
+            @test modeindex(mr, ms) == [modeindex(mr, i) for i in ms]
+        end
+
+        mr = LM(0:4, ZeroTo)
+        (l, m) = first(mr)
+        mr2 = LM(l,m)
+        @test modeindex(mr, mr2) == modeindex(mr, l, m) == 1
+        @test modeindex(mr, LM(l:l,m)) == 1:1
+    end
 
 	@testset "L2L1Triangle" begin
 		for l_min=0:l_cutoff,l_max=l_min:l_cutoff,
@@ -649,7 +693,6 @@ end
 			    l2 = $T(1:3, ToZero)
 			    @test intersect(l1,l2) == $T(1:3, ZeroTo(0))
 			    @test intersect(l2,l1) == $T(1:3, ZeroTo(0))
-
 			end
 		end
 	end
@@ -701,6 +744,8 @@ end
 			end
 		end
 	end
+
+    @test intersect(FullRange(2), FullRange(1)) === FullRange(1)
 end
 
 @testset "show" begin
