@@ -149,12 +149,6 @@ for DT in [:LM, :ML]
 
         $DT{UnitRange{LI},typeof(m_range)}(UnitRange{LI}(l_range), m_range)
     end
-
-    @eval function $DT{LT,MT}(m::SHModeRange) where {LT,MT}
-        lr = convert(LT, l_range(m))
-        mr = convert(MT, m_range(m))
-        $DT(lr, mr)
-    end
 end
 
 """
