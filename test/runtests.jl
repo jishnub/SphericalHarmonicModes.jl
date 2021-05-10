@@ -656,20 +656,24 @@ end
     @testset "LM" begin
 		m = LM(0:1)
 		@test ML(m) == ML(0:1)
+        @test convert(ML, m) == ML(0:1)
 		@test flip(m) == ML(0:1)
 		@test LM(m) === m
+        @test convert(LM, m) === m
     end
     @testset "ML" begin
 		m = ML(0:1)
 		@test LM(m) == LM(0:1)
+        @test convert(LM, m) == LM(0:1)
 		@test flip(m) == LM(0:1)
 		@test ML(m) === m
+        @test convert(ML, m) === m
     end
 end
 
 @testset "intersect" begin
 	@testset "same l, different m" begin
-		for T in [LM,ML]
+		for T in [LM, ML]
 			@eval begin
 			    l1 = $T(3:3,0:2)
 			    l2 = $T(3:3,1:3)
@@ -697,7 +701,7 @@ end
 		end
 	end
 	@testset "different l, same m" begin
-		for T in [LM,ML]
+		for T in [LM, ML]
 			@eval begin
 			    l1 = $T(1:3,1:1)
 			    l2 = $T(1:1,1:1)
@@ -746,6 +750,17 @@ end
 	end
 
     @test intersect(FullRange(2), FullRange(1)) === FullRange(1)
+
+    @test intersect(SingleValuedRange(1), -1:1) === SingleValuedRange(1)
+    @test intersect(SingleValuedRange(1), FullRange(1)) === SingleValuedRange(1)
+    @test intersect(SingleValuedRange(1), ZeroTo(1)) === SingleValuedRange(1)
+    @test intersect(SingleValuedRange(1), 2:3) === nothing
+    @test intersect(-1:1, SingleValuedRange(1)) === SingleValuedRange(1)
+    @test intersect(FullRange(1), SingleValuedRange(1)) === SingleValuedRange(1)
+    @test intersect(ZeroTo(1), SingleValuedRange(1)) === SingleValuedRange(1)
+    @test intersect(2:3, SingleValuedRange(1)) === nothing
+    @test intersect(SingleValuedRange(1), SingleValuedRange(1)) === SingleValuedRange(1)
+    @test intersect(SingleValuedRange(1), SingleValuedRange(2)) === nothing
 end
 
 @testset "show" begin
