@@ -149,6 +149,12 @@ for DT in [:LM, :ML]
 
         $DT{UnitRange{LI},typeof(m_range)}(UnitRange{LI}(l_range), m_range)
     end
+
+    @eval function $DT{LT,MT}(m::SHModeRange) where {LT,MT}
+        lr = convert(LT, l_range(m))
+        mr = convert(MT, m_range(m))
+        $DT(lr, mr)
+    end
 end
 
 """
@@ -308,6 +314,11 @@ Base.last(x::SingleValuedRange) = x.n
 Base.length(x::SingleValuedRange) = 1
 Base.show(io::IO, x::SingleValuedRange) = print(io, repr(x.n), ":", repr(x.n))
 
+function SingleValuedRange(r::AbstractUnitRange{<:Integer})
+    length(r) == 1 || throw(ArgumentError("range must contain only one value"))
+    SingleValuedRange(first(r))
+end
+
 """
     ZeroTo(l::Int)
 
@@ -325,6 +336,11 @@ ZeroTo(l) = ZeroTo{false}(l)
 Base.first(::ZeroTo) = 0
 Base.last(r::ZeroTo) = r.l
 Base.show(io::IO, r::ZeroTo) = print(io, "0:", repr(r.l))
+
+function ZeroTo(r::AbstractUnitRange{<:Integer})
+    first(r) == 0 || throw(ArgumentError("range must start at zero"))
+    ZeroTo(last(r))
+end
 
 """
     ToZero(l::Int)
@@ -344,6 +360,11 @@ Base.first(r::ToZero) = -r.l
 Base.last(::ToZero) = 0
 Base.show(io::IO, r::ToZero) = print(io,"-",repr(r.l),":0")
 
+function ToZero(r::AbstractUnitRange{<:Integer})
+    last(r) == 0 || throw(ArgumentError("range must end at zero"))
+    ToZero(-first(r))
+end
+
 """
     FullRange(l::Int)
 
@@ -361,6 +382,11 @@ FullRange(l) = FullRange{false}(l)
 Base.first(r::FullRange) = -r.l
 Base.last(r::FullRange) = r.l
 Base.show(io::IO, r::FullRange) = print(io, repr(-r.l),":",repr(r.l))
+
+function FullRange(r::AbstractUnitRange{<:Integer})
+    first(r) == -last(r) || throw(ArgumentError("starting value is not the negative of the ending value"))
+    FullRange(last(r))
+end
 
 Base.intersect(a::FullRange, b::FullRange) = FullRange(min(maximum(a), maximum(b)))
 Base.intersect(a::T, b::FullRange) where {T<:ZeroClampedRange} = T(min(a.l, b.l))
@@ -437,7 +463,7 @@ true
 flip(m::LM) = ML(m)
 flip(m::ML) = LM(m)
 
-Base.convert(::Type{T}, m::SHModeRange) where {T<:SHModeRange} = T(m)
+Base.convert(::Type{T}, m::SHModeRange) where {T<:SHModeRange} = m isa T ? m : T(m)
 
 function L2L1Triangle(l_min::Integer, l_max::Integer, mr::SHModeRange, args...)
     Δ = last(l_range(mr))

@@ -20,24 +20,33 @@ end
 			@test first(r) == 0
 	        @test last(r) == 3
 	        @test !isempty(r)
+
+            r = ZeroTo(0:2)
+            @test first(r) == 0
+            @test last(r) == 2
+            @test_throws ArgumentError ZeroTo(1:2)
 	    end
 	    @testset "FullRange" begin
 	        r = FullRange(3)
 	        @test first(r) == -3
 	        @test last(r) == 3
 	        @test !isempty(r)
-	    end
-	    @testset "ZeroTo" begin
-	        r = ZeroTo(3)
-	        @test first(r) == 0
-	        @test last(r) == 3
-	        @test !isempty(r)
+
+            r = FullRange(-1:1)
+            @test first(r) == -1
+            @test last(r) == 1
+            @test_throws ArgumentError FullRange(0:1)
 	    end
 	    @testset "ToZero" begin
 	        r = ToZero(3)
 	        @test first(r) == -3
 	        @test last(r) == 0
 	        @test !isempty(r)
+
+            r = ToZero(-2:0)
+            @test first(r) == -2
+            @test last(r) == 0
+            @test_throws ArgumentError ToZero(-2:-1)
 	    end
 	    @testset "SingleValuedRange" begin
 	    	n = 3
@@ -47,6 +56,11 @@ end
 	        @test last(r) == n
 	        @test length(r) == 1
 	        @test !isempty(r)
+
+            r = SingleValuedRange(n:n)
+            @test first(r) == n
+            @test last(r) == n
+            @test_throws ArgumentError SingleValuedRange(1:2)
 	    end
 	end
 
