@@ -308,6 +308,11 @@ Base.last(x::SingleValuedRange) = x.n
 Base.length(x::SingleValuedRange) = 1
 Base.show(io::IO, x::SingleValuedRange) = print(io, repr(x.n), ":", repr(x.n))
 
+function SingleValuedRange(r::AbstractUnitRange{<:Integer})
+    length(r) == 1 || throw(ArgumentError("range must contain only one value"))
+    SingleValuedRange(first(r))
+end
+
 """
     ZeroTo(l::Int)
 
@@ -325,6 +330,11 @@ ZeroTo(l) = ZeroTo{false}(l)
 Base.first(::ZeroTo) = 0
 Base.last(r::ZeroTo) = r.l
 Base.show(io::IO, r::ZeroTo) = print(io, "0:", repr(r.l))
+
+function ZeroTo(r::AbstractUnitRange{<:Integer})
+    first(r) == 0 || throw(ArgumentError("range must start at zero"))
+    ZeroTo(last(r))
+end
 
 """
     ToZero(l::Int)
@@ -344,6 +354,11 @@ Base.first(r::ToZero) = -r.l
 Base.last(::ToZero) = 0
 Base.show(io::IO, r::ToZero) = print(io,"-",repr(r.l),":0")
 
+function ToZero(r::AbstractUnitRange{<:Integer})
+    last(r) == 0 || throw(ArgumentError("range must end at zero"))
+    ToZero(-first(r))
+end
+
 """
     FullRange(l::Int)
 
@@ -362,12 +377,30 @@ Base.first(r::FullRange) = -r.l
 Base.last(r::FullRange) = r.l
 Base.show(io::IO, r::FullRange) = print(io, repr(-r.l),":",repr(r.l))
 
+function FullRange(r::AbstractUnitRange{<:Integer})
+    first(r) == -last(r) || throw(ArgumentError("starting value is not the negative of the ending value"))
+    FullRange(last(r))
+end
+
 Base.intersect(a::FullRange, b::FullRange) = FullRange(min(maximum(a), maximum(b)))
 Base.intersect(a::T, b::FullRange) where {T<:ZeroClampedRange} = T(min(a.l, b.l))
 Base.intersect(a::FullRange, b::T) where {T<:ZeroClampedRange} = T(min(a.l, b.l))
 
 Base.intersect(a::T, b::T) where {T<:ZeroClampedRange} = T(min(a.l, b.l))
 Base.intersect(a::ZeroClampedRange, b::ZeroClampedRange) = ZeroTo(0)
+
+function Base.intersect(a::SingleValuedRange, b::AbstractUnitRange{<:Integer})
+    first(a) in b || return nothing
+    return a
+end
+Base.intersect(b::AbstractUnitRange{<:Integer}, a::SingleValuedRange) = intersect(a, b)
+function Base.intersect(a::SingleValuedRange, b::SingleValuedRange)
+    first(a) == first(b) || return nothing
+    return a
+end
+
+Base.intersect(a::SingleValuedRange, b::PartiallySpecifiedRange) = intersect(a, UnitRange(b))
+Base.intersect(a::PartiallySpecifiedRange, b::SingleValuedRange) = intersect(UnitRange(a), b)
 
 for DT in [:LM, :ML]
     @eval function $DT(l_range::LT, ::Type{MT}) where {MT<:PartiallySpecifiedRange, LT<:AbstractUnitRange{<:Integer}}
@@ -423,6 +456,8 @@ true
 """
 flip(m::LM) = ML(m)
 flip(m::ML) = LM(m)
+
+Base.convert(::Type{T}, m::SHModeRange) where {T<:SHModeRange} = m isa T ? m : T(m)
 
 function L2L1Triangle(l_min::Integer, l_max::Integer, mr::SHModeRange, args...)
     Δ = last(l_range(mr))
@@ -956,9 +991,9 @@ end
 
 for DT in [:LM, :ML]
     @eval function Base.intersect(mr1::$DT, mr2::$DT)
-        lr = intersect(l_range(mr1), l_range(mr2))
         mr = intersect(m_range(mr1), m_range(mr2))
-        (isempty(lr) || isempty(mr)) && return nothing
+        lr = intersect(l_range(mr1), l_range(mr2))
+        (mr === nothing || lr === nothing || isempty(lr) || isempty(mr)) && return nothing
         $DT(lr, mr)
     end
 end
