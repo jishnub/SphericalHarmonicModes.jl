@@ -23,10 +23,29 @@ promote_typeof(x, y) = mapreduce(typeof, promote_type, (x, y))
 	        @test last(r) == 3
 	        @test !isempty(r)
 
-            r = ZeroTo(0:2)
-            @test first(r) == 0
-            @test last(r) == 2
+            for rin in Any[0:2, ZeroTo(2), ZeroTo{true}(2), ZeroTo{false}(2)]
+                r = ZeroTo(rin)
+                @test first(r) == 0
+                @test last(r) == 2
+                r = ZeroTo{false}(rin)
+                @test first(r) == 0
+                @test last(r) == 2
+            end
+            for rin in Any[FullRange(0), ToZero(0), SingleValuedRange(0)]
+                r = ZeroTo(rin)
+                @test r isa ZeroTo
+                @test first(r) == last(r) == 0
+                r = ZeroTo{false}(rin)
+                @test r isa ZeroTo{false}
+                @test first(r) == last(r) == 0
+            end
             @test_throws ArgumentError ZeroTo(1:2)
+            @test_throws Exception ZeroTo{true}(ZeroTo(1))
+            for r in Any[ToZero(1), FullRange(1), SingleValuedRange(1)]
+                @test_throws Exception ZeroTo(r)
+                @test_throws Exception ZeroTo{false}(r)
+                @test_throws Exception ZeroTo{true}(r)
+            end
 	    end
 	    @testset "FullRange" begin
 	        r = FullRange(3)
@@ -38,6 +57,32 @@ promote_typeof(x, y) = mapreduce(typeof, promote_type, (x, y))
             @test first(r) == -1
             @test last(r) == 1
             @test_throws ArgumentError FullRange(0:1)
+
+            for rin in Any[-2:2, FullRange(2), FullRange{false}(2), FullRange{true}(2)]
+                r = FullRange(rin)
+                @test r isa FullRange
+                @test first(r) == -2
+                @test last(r) == 2
+                r = FullRange{false}(rin)
+                @test r isa FullRange{false}
+                @test first(r) == -2
+                @test last(r) == 2
+            end
+            for rin in Any[ZeroTo(0), ToZero(0), SingleValuedRange(0)]
+                r = FullRange(rin)
+                @test r isa FullRange
+                @test first(r) == last(r) == 0
+                r = FullRange{false}(rin)
+                @test r isa FullRange{false}
+                @test first(r) == last(r) == 0
+            end
+            @test_throws ArgumentError FullRange(1:2)
+            @test_throws Exception FullRange{true}(FullRange(1))
+            for r in Any[ToZero(1), ZeroTo(1), SingleValuedRange(1)]
+                @test_throws Exception FullRange(r)
+                @test_throws Exception FullRange{false}(r)
+                @test_throws Exception FullRange{true}(r)
+            end
 	    end
 	    @testset "ToZero" begin
 	        r = ToZero(3)
@@ -49,6 +94,32 @@ promote_typeof(x, y) = mapreduce(typeof, promote_type, (x, y))
             @test first(r) == -2
             @test last(r) == 0
             @test_throws ArgumentError ToZero(-2:-1)
+
+            for rin in Any[-2:0, ToZero(2), ToZero{true}(2), ToZero{false}(2)]
+                r = ToZero(rin)
+                @test r isa ToZero
+                @test first(r) == -2
+                @test last(r) == 0
+                r = ToZero{false}(rin)
+                @test r isa ToZero{false}
+                @test first(r) == -2
+                @test last(r) == 0
+            end
+            @test_throws ArgumentError ToZero(1:2)
+            @test_throws Exception ToZero{true}(ToZero(1))
+            for rin in Any[ZeroTo(0), FullRange(0), SingleValuedRange(0)]
+                r = ToZero(rin)
+                @test r isa ToZero
+                @test first(r) == last(r) == 0
+                r = ToZero{false}(rin)
+                @test r isa ToZero{false}
+                @test first(r) == last(r) == 0
+            end
+            for r in Any[ZeroTo(1), FullRange(1), SingleValuedRange(1)]
+                @test_throws Exception ToZero(r)
+                @test_throws Exception ToZero{false}(r)
+                @test_throws Exception ToZero{true}(r)
+            end
 	    end
 	    @testset "SingleValuedRange" begin
 	    	n = 3
@@ -63,6 +134,20 @@ promote_typeof(x, y) = mapreduce(typeof, promote_type, (x, y))
             @test first(r) == n
             @test last(r) == n
             @test_throws ArgumentError SingleValuedRange(1:2)
+
+            for rin in Any[1:1, SingleValuedRange(1)]
+                r = SingleValuedRange(rin)
+                @test first(r) == 1
+                @test last(r) == 1
+            end
+            @test_throws ArgumentError SingleValuedRange(1:2)
+            for rin in Any[ZeroTo(0), FullRange(0), ToZero(0)]
+                r = SingleValuedRange(rin)
+                @test first(r) == last(r) == 0
+            end
+            for r in Any[ZeroTo(1), FullRange(1), ToZero(1)]
+                @test_throws Exception SingleValuedRange(r)
+            end
 	    end
         @testset "promotion" begin
             @test promote_typeof(ZeroTo(1), ZeroTo(1)) == typeof(ZeroTo(1))
@@ -129,6 +214,35 @@ promote_typeof(x, y) = mapreduce(typeof, promote_type, (x, y))
                 @test isconcretetype(promote_typeof(x, y))
             end
         end
+        @testset "conversion" begin
+            for lr in Any[0:1, ZeroTo(1), SingleValuedRange(1)], mr in Any[0:1, ZeroTo(1), ToZero(1), SingleValuedRange(1)]
+                convert(LM{UnitRange{Int}, UnitRange{Int}}, LM(lr, mr)) isa LM{UnitRange{Int}, UnitRange{Int}}
+            end
+            for LT in [UnitRange{Int}, ZeroTo{false}]
+                for MT in [ZeroTo{false}, ZeroTo{true}]
+                    @test convert(LM{LT, MT}, LM(0:1, 0:1)) isa LM{LT, MT}
+                end
+                for MT in [UnitRange{Int}, ToZero{false}, ToZero{true}]
+                    @test convert(LM{LT, MT}, LM(0:1, -1:0)) isa LM{LT, MT}
+                end
+                for MT in [FullRange{false}, FullRange{true}]
+                    @test convert(LM{LT, MT}, LM(0:1, -1:1)) isa LM{LT, MT}
+                end
+                @test convert(LM{LT, SingleValuedRange}, LM(0:1, 0:0)) isa LM{LT, SingleValuedRange}
+            end
+            for LT in [UnitRange{Int}, SingleValuedRange]
+                for MT in [ZeroTo{false}, ZeroTo{true}]
+                    @test convert(LM{LT, MT}, LM(1:1, 0:1)) isa LM{LT, MT}
+                end
+                for MT in [ToZero{false}, ToZero{true}]
+                    @test convert(LM{LT, MT}, LM(1:1, -1:0)) isa LM{LT, MT}
+                end
+                for MT in [FullRange{false}, FullRange{true}]
+                    @test convert(LM{LT, MT}, LM(1:1, -1:1)) isa LM{LT, MT}
+                end
+                @test convert(LM{LT, SingleValuedRange}, LM(1:1, 1:1)) isa LM{LT, SingleValuedRange}
+            end
+        end
 	end
 
 	@testset "ML" begin
@@ -181,6 +295,35 @@ promote_typeof(x, y) = mapreduce(typeof, promote_type, (x, y))
 
             for x in iterslist, y in iterslist
                 @test isconcretetype(promote_typeof(x, y))
+            end
+        end
+        @testset "conversion" begin
+            for lr in Any[0:1, ZeroTo(1), SingleValuedRange(1)], mr in Any[0:1, ZeroTo(1), ToZero(1), SingleValuedRange(1)]
+                convert(ML{UnitRange{Int}, UnitRange{Int}}, ML(lr, mr)) isa ML{UnitRange{Int}, UnitRange{Int}}
+            end
+            for LT in [UnitRange{Int}, ZeroTo{false}]
+                for MT in [ZeroTo{false}, ZeroTo{true}]
+                    @test convert(ML{LT, MT}, ML(0:1, 0:1)) isa ML{LT, MT}
+                end
+                for MT in [UnitRange{Int}, ToZero{false}, ToZero{true}]
+                    @test convert(ML{LT, MT}, ML(0:1, -1:0)) isa ML{LT, MT}
+                end
+                for MT in [FullRange{false}, FullRange{true}]
+                    @test convert(ML{LT, MT}, ML(0:1, -1:1)) isa ML{LT, MT}
+                end
+                @test convert(ML{LT, SingleValuedRange}, ML(0:1, 0:0)) isa ML{LT, SingleValuedRange}
+            end
+            for LT in [UnitRange{Int}, SingleValuedRange]
+                for MT in [ZeroTo{false}, ZeroTo{true}]
+                    @test convert(ML{LT, MT}, ML(1:1, 0:1)) isa ML{LT, MT}
+                end
+                for MT in [ToZero{false}, ToZero{true}]
+                    @test convert(ML{LT, MT}, ML(1:1, -1:0)) isa ML{LT, MT}
+                end
+                for MT in [FullRange{false}, FullRange{true}]
+                    @test convert(ML{LT, MT}, ML(1:1, -1:1)) isa ML{LT, MT}
+                end
+                @test convert(ML{LT, SingleValuedRange}, ML(1:1, 1:1)) isa ML{LT, SingleValuedRange}
             end
         end
 	end
