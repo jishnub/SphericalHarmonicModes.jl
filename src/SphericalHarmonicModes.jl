@@ -149,7 +149,13 @@ for DT in [:LM, :ML]
 
         $DT{UnitRange{LI},typeof(m_range)}(UnitRange{LI}(l_range), m_range)
     end
+    @eval Base.promote_rule(::Type{$DT{LT1, MT1}}, ::Type{$DT{LT2, MT2}}) where {LT1, LT2, MT1, MT2} =
+        $DT{promote_type(LT1, LT2), promote_type(MT1, MT2)}
+
+    @eval $DT{UnitRange{Int}, MT}(x::$DT{LT, MT}) where {LT,MT} = $DT{UnitRange{Int}, MT}(UnitRange(l_range(x)), m_range(x))
+    @eval $DT{UnitRange{Int}, UnitRange{Int}}(x::$DT) = $DT{UnitRange{Int}, UnitRange{Int}}(UnitRange(l_range(x)), UnitRange(m_range(x)))
 end
+
 
 """
     L2L1Triangle(l1_min::Int, l1_max::Int, Δl_max::Int, l2_min::Int = max(0, l1_min - Δl_max), l2_max = l1_max + Δl_max)
@@ -401,6 +407,9 @@ end
 
 Base.intersect(a::SingleValuedRange, b::PartiallySpecifiedRange) = intersect(a, UnitRange(b))
 Base.intersect(a::PartiallySpecifiedRange, b::SingleValuedRange) = intersect(UnitRange(a), b)
+
+Base.promote_rule(::Type{<:PartiallySpecifiedRange}, ::Type{<:PartiallySpecifiedRange}) = UnitRange{Int}
+Base.promote_rule(::Type{<:PartiallySpecifiedRange}, ::Type{SingleValuedRange}) = UnitRange{Int}
 
 for DT in [:LM, :ML]
     @eval function $DT(l_range::LT, ::Type{MT}) where {MT<:PartiallySpecifiedRange, LT<:AbstractUnitRange{<:Integer}}

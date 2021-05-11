@@ -104,6 +104,23 @@ end
 		    @test LM(ZeroTo(3), SingleValuedRange(2)) isa LM{UnitRange{Int}, SingleValuedRange}
 		    @test LM(SingleValuedRange(3), SingleValuedRange(2)) isa LM{SingleValuedRange, SingleValuedRange}
 		end
+
+        @testset "promotion" begin
+            promote_typeof(x, y) = mapreduce(typeof, promote_type, (x, y))
+            @test promote_typeof(LM(1,1), LM(2,2)) == LM{SingleValuedRange, SingleValuedRange}
+            @test promote_typeof(LM(1), LM(1)) == LM{SingleValuedRange, FullRange{true}}
+            @test promote_typeof(LM(1:1), LM(1)) == LM{UnitRange{Int64}, FullRange{true}}
+            @test promote_typeof(LM(1:1, ZeroTo), LM(1, ZeroTo)) == LM{UnitRange{Int}, ZeroTo{true}}
+            @test promote_typeof(LM(1:1, ZeroTo), LM(1, ZeroTo(1))) == LM{UnitRange{Int}, UnitRange{Int}}
+
+            iterslist = Any[LM(1), LM(1:2), LM(1:2, 0:0), LM(1:1, ZeroTo), LM(1:2, ZeroTo(1)),
+                        LM(1, ZeroTo), LM(1:1, FullRange), LM(1, FullRange), LM(ZeroTo(3), ZeroTo),
+                        LM(ZeroTo(2)), LM(ZeroTo(2), FullRange(1))]
+
+            for x in iterslist, y in iterslist
+                @test isconcretetype(promote_typeof(x, y))
+            end
+        end
 	end
 
 	@testset "ML" begin
@@ -142,6 +159,23 @@ end
 		    @test ML(ZeroTo(3), SingleValuedRange(2)) isa ML{UnitRange{Int}, SingleValuedRange}
 		    @test ML(SingleValuedRange(3), SingleValuedRange(2)) isa ML{SingleValuedRange, SingleValuedRange}
 		end
+
+        @testset "promotion" begin
+            promote_typeof(x, y) = mapreduce(typeof, promote_type, (x, y))
+            @test promote_typeof(ML(1,1), ML(2,2)) == ML{SingleValuedRange, SingleValuedRange}
+            @test promote_typeof(ML(1), ML(1)) == ML{SingleValuedRange, FullRange{true}}
+            @test promote_typeof(ML(1:1), ML(1)) == ML{UnitRange{Int64}, FullRange{true}}
+            @test promote_typeof(ML(1:1, ZeroTo), ML(1, ZeroTo)) == ML{UnitRange{Int}, ZeroTo{true}}
+            @test promote_typeof(ML(1:1, ZeroTo), ML(1, ZeroTo(1))) == ML{UnitRange{Int}, UnitRange{Int}}
+
+            iterslist = Any[ML(1), ML(1:2), ML(1:2, 0:0), ML(1:1, ZeroTo), ML(1:2, ZeroTo(1)),
+                        ML(1, ZeroTo), ML(1:1, FullRange), ML(1, FullRange), ML(ZeroTo(3), ZeroTo),
+                        ML(ZeroTo(2)), ML(ZeroTo(2), FullRange(1))]
+
+            for x in iterslist, y in iterslist
+                @test isconcretetype(promote_typeof(x, y))
+            end
+        end
 	end
 
 	@testset "L2L1Triangle " begin
