@@ -8,6 +8,8 @@ export modeindex, l_range, m_range, l2_range, l1_range
 
 firstlast(r::AbstractRange) = (first(r), last(r))
 
+include("specialranges.jl")
+
 """
     SphericalHarmonicModes.ModeRange
 
@@ -79,6 +81,11 @@ struct LM{LT,MT} <: SHModeRange{LT,MT}
         map(ensure_nonempty, (l_range, m_range))
         new(l_range, m_range)
     end
+    for MT in Any[ZeroTo{true}, ToZero{true}, FullRange{true}, SingleValuedRange]
+        function LM{LT,MT}(l_range::LT, m_range::MT) where {LT<:AbstractRange}
+            new(l_range, m_range)
+        end
+    end
 end
 
 """
@@ -133,6 +140,11 @@ struct ML{LT,MT} <: SHModeRange{LT,MT}
         map(ensure_nonempty, (l_range, m_range))
         new(l_range, m_range)
     end
+    for MT in Any[ZeroTo{true}, ToZero{true}, FullRange{true}, SingleValuedRange]
+        function ML{LT,MT}(l_range::LT, m_range::MT) where {LT<:AbstractRange}
+            new(l_range, m_range)
+        end
+    end
 end
 
 for DT in [:LM, :ML]
@@ -149,13 +161,11 @@ for DT in [:LM, :ML]
 
         $DT{UnitRange{LI},typeof(m_range)}(UnitRange{LI}(l_range), m_range)
     end
+    @eval $DT{LT, MT}(lr::AbstractRange, mr::AbstractRange) where {LT, MT} = $DT{LT, MT}(LT(lr), MT(mr))
     @eval Base.promote_rule(::Type{$DT{LT1, MT1}}, ::Type{$DT{LT2, MT2}}) where {LT1, LT2, MT1, MT2} =
         $DT{promote_type(LT1, LT2), promote_type(MT1, MT2)}
-
-    @eval $DT{UnitRange{Int}, MT}(x::$DT{LT, MT}) where {LT,MT} = $DT{UnitRange{Int}, MT}(UnitRange(l_range(x)), m_range(x))
-    @eval $DT{UnitRange{Int}, UnitRange{Int}}(x::$DT) = $DT{UnitRange{Int}, UnitRange{Int}}(UnitRange(l_range(x)), UnitRange(m_range(x)))
 end
-
+(::Type{S})(x::SHModeRange) where {S<:SHModeRange} = S(l_range(x), m_range(x))
 
 """
     L2L1Triangle(l1_min::Int, l1_max::Int, Δl_max::Int, l2_min::Int = max(0, l1_min - Δl_max), l2_max = l1_max + Δl_max)
@@ -296,121 +306,6 @@ throw_modemissingerror(mr, mode) = throw(ModeMissingError(mr, mode))
     mode in mr || throw_modemissingerror(mr, mode)
 end
 
-abstract type PartiallySpecifiedRange{T} <: AbstractUnitRange{Int} end
-abstract type ZeroClampedRange{T} <: PartiallySpecifiedRange{T} end
-Base.isempty(::PartiallySpecifiedRange) = false
-
-"""
-    SingleValuedRange(n::Int)
-
-The range `n:n`.
-"""
-struct SingleValuedRange <: AbstractUnitRange{Int}
-    n :: Int
-end
-Base.isempty(::SingleValuedRange) = false
-Base.first(x::SingleValuedRange) = x.n
-Base.last(x::SingleValuedRange) = x.n
-Base.length(x::SingleValuedRange) = 1
-Base.show(io::IO, x::SingleValuedRange) = print(io, repr(x.n), ":", repr(x.n))
-
-function SingleValuedRange(r::AbstractUnitRange{<:Integer})
-    length(r) == 1 || throw(ArgumentError("range must contain only one value"))
-    SingleValuedRange(first(r))
-end
-
-"""
-    ZeroTo(l::Int)
-
-The range `0:l` for an `l ≥ 0`.
-"""
-struct ZeroTo{T} <: ZeroClampedRange{T}
-    l :: Int
-
-    function ZeroTo{T}(l) where {T}
-        ensure_nonnegative(l)
-        new{T}(l)
-    end
-end
-ZeroTo(l) = ZeroTo{false}(l)
-Base.first(::ZeroTo) = 0
-Base.last(r::ZeroTo) = r.l
-Base.show(io::IO, r::ZeroTo) = print(io, "0:", repr(r.l))
-
-function ZeroTo(r::AbstractUnitRange{<:Integer})
-    first(r) == 0 || throw(ArgumentError("range must start at zero"))
-    ZeroTo(last(r))
-end
-
-"""
-    ToZero(l::Int)
-
-The range `-l:0` for an `l ≥ 0`.
-"""
-struct ToZero{T} <: ZeroClampedRange{T}
-    l :: Int
-
-    function ToZero{T}(l) where {T}
-        ensure_nonnegative(l)
-        new{T}(l)
-    end
-end
-ToZero(l) = ToZero{false}(l)
-Base.first(r::ToZero) = -r.l
-Base.last(::ToZero) = 0
-Base.show(io::IO, r::ToZero) = print(io,"-",repr(r.l),":0")
-
-function ToZero(r::AbstractUnitRange{<:Integer})
-    last(r) == 0 || throw(ArgumentError("range must end at zero"))
-    ToZero(-first(r))
-end
-
-"""
-    FullRange(l::Int)
-
-The range `-l:l` for an `l ≥ 0`.
-"""
-struct FullRange{T} <: PartiallySpecifiedRange{T}
-    l :: Int
-
-    function FullRange{T}(l) where {T}
-        ensure_nonnegative(l)
-        new{T}(l)
-    end
-end
-FullRange(l) = FullRange{false}(l)
-Base.first(r::FullRange) = -r.l
-Base.last(r::FullRange) = r.l
-Base.show(io::IO, r::FullRange) = print(io, repr(-r.l),":",repr(r.l))
-
-function FullRange(r::AbstractUnitRange{<:Integer})
-    first(r) == -last(r) || throw(ArgumentError("starting value is not the negative of the ending value"))
-    FullRange(last(r))
-end
-
-Base.intersect(a::FullRange, b::FullRange) = FullRange(min(maximum(a), maximum(b)))
-Base.intersect(a::T, b::FullRange) where {T<:ZeroClampedRange} = T(min(a.l, b.l))
-Base.intersect(a::FullRange, b::T) where {T<:ZeroClampedRange} = T(min(a.l, b.l))
-
-Base.intersect(a::T, b::T) where {T<:ZeroClampedRange} = T(min(a.l, b.l))
-Base.intersect(a::ZeroClampedRange, b::ZeroClampedRange) = ZeroTo(0)
-
-function Base.intersect(a::SingleValuedRange, b::AbstractUnitRange{<:Integer})
-    first(a) in b || return nothing
-    return a
-end
-Base.intersect(b::AbstractUnitRange{<:Integer}, a::SingleValuedRange) = intersect(a, b)
-function Base.intersect(a::SingleValuedRange, b::SingleValuedRange)
-    first(a) == first(b) || return nothing
-    return a
-end
-
-Base.intersect(a::SingleValuedRange, b::PartiallySpecifiedRange) = intersect(a, UnitRange(b))
-Base.intersect(a::PartiallySpecifiedRange, b::SingleValuedRange) = intersect(UnitRange(a), b)
-
-Base.promote_rule(::Type{<:PartiallySpecifiedRange}, ::Type{<:PartiallySpecifiedRange}) = UnitRange{Int}
-Base.promote_rule(::Type{<:PartiallySpecifiedRange}, ::Type{SingleValuedRange}) = UnitRange{Int}
-
 for DT in [:LM, :ML]
     @eval function $DT(l_range::LT, ::Type{MT}) where {MT<:PartiallySpecifiedRange, LT<:AbstractUnitRange{<:Integer}}
         ensure_nonempty(l_range)
@@ -433,6 +328,30 @@ for DT in [:LM, :ML]
 
     @eval $DT(m::$DT) = m
     @eval $DT(m::SHModeRange) = $DT(l_range(m), m_range(m))
+
+    # conversions to ZeroTo{true}, ToZero{true} and FullRange{true} are only possible with the context
+    # of the l range
+    @eval function $DT{LT, ZeroTo{true}}(lr::AbstractRange, mr::AbstractRange) where {LT<:AbstractRange}
+        m_min, m_max = extrema(mr)
+        m_min == 0 || throw(ArgumentError("m range must begin at zero"))
+        l_max = maximum(lr)
+        m_max == l_max || throw(ArgumentError("maximum values of m and l ranges differ"))
+        $DT{LT, ZeroTo{true}}(LT(lr), ZeroTo{true}(m_max))
+    end
+    @eval function $DT{LT, ToZero{true}}(lr::AbstractRange, mr::AbstractRange) where {LT<:AbstractRange}
+        m_min, m_max = extrema(mr)
+        m_max == 0 || throw(ArgumentError("m range must end at zero"))
+        l_max = maximum(lr)
+        m_min == -l_max || throw(ArgumentError("minimum m must be the negative of the maximum l"))
+        $DT{LT, ToZero{true}}(LT(lr), ToZero{true}(l_max))
+    end
+    @eval function $DT{LT, FullRange{true}}(lr::AbstractRange, mr::AbstractRange) where {LT<:AbstractRange}
+        m_min, m_max = extrema(mr)
+        m_max == -m_min || throw(ArgumentError("minimum m must be the negative of maximum m"))
+        l_max = maximum(lr)
+        m_max == l_max || throw(ArgumentError("maximum values of m and l ranges differ"))
+        $DT{LT, FullRange{true}}(LT(lr), FullRange{true}(l_max))
+    end
 
     @eval Base.:(==)(a::$DT, b::$DT) = l_range(a) == l_range(b) && m_range(a) == m_range(b)
 end
