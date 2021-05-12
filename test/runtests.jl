@@ -205,6 +205,7 @@ promote_typeof(x, y) = mapreduce(typeof, promote_type, (x, y))
             @test promote_typeof(LM(1:1), LM(1)) == LM{UnitRange{Int64}, FullRange{true}}
             @test promote_typeof(LM(1:1, ZeroTo), LM(1, ZeroTo)) == LM{UnitRange{Int}, ZeroTo{true}}
             @test promote_typeof(LM(1:1, ZeroTo), LM(1, ZeroTo(1))) == LM{UnitRange{Int}, UnitRange{Int}}
+            @test promote_typeof(LM(1:1, 1:1), LM(1,1)) == LM{UnitRange{Int}, UnitRange{Int}}
 
             iterslist = Any[LM(1), LM(1:2), LM(1:2, 0:0), LM(1:1, ZeroTo), LM(1:2, ZeroTo(1)),
                         LM(1, ZeroTo), LM(1:1, FullRange), LM(1, FullRange), LM(ZeroTo(3), ZeroTo),
@@ -288,6 +289,7 @@ promote_typeof(x, y) = mapreduce(typeof, promote_type, (x, y))
             @test promote_typeof(ML(1:1), ML(1)) == ML{UnitRange{Int64}, FullRange{true}}
             @test promote_typeof(ML(1:1, ZeroTo), ML(1, ZeroTo)) == ML{UnitRange{Int}, ZeroTo{true}}
             @test promote_typeof(ML(1:1, ZeroTo), ML(1, ZeroTo(1))) == ML{UnitRange{Int}, UnitRange{Int}}
+            @test promote_typeof(ML(1:1, 1:1), ML(1,1)) == ML{UnitRange{Int}, UnitRange{Int}}
 
             iterslist = Any[ML(1), ML(1:2), ML(1:2, 0:0), ML(1:1, ZeroTo), ML(1:2, ZeroTo(1)),
                         ML(1, ZeroTo), ML(1:1, FullRange), ML(1, FullRange), ML(ZeroTo(3), ZeroTo),
