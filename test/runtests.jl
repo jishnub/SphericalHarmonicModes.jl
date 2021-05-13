@@ -783,6 +783,15 @@ end
 			end
 		end
 	end
+
+    @testset "other iterators" begin
+        r = collect((i,i) for i in 1:1000)
+        for (ind, t) in enumerate(r)
+            @test modeindex(r, t) == ind
+            @test modeindex(r, t...) == ind
+        end
+        @test modeindex(r, (0,0)) === nothing
+    end
 end
 
 @testset "last" begin

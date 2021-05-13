@@ -889,6 +889,9 @@ end
     nskip(mr, l1) + l2 - first(l2_range(mr,l1)) + 1
 end
 
+modeindex(r, a, b) = modeindex(r, (a,b))
+modeindex(r, x::Tuple) = findfirst(isequal(x), r)
+
 Base.length(mr::ModeRange) = @inbounds modeindex(mr, last(mr))
 
 # Special methods for single-valued ranges
