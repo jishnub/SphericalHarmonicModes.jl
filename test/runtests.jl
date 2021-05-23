@@ -880,6 +880,17 @@ end
     end
 end
 
+@testset "ordering" begin
+    for l_range in Any[0:1, ZeroTo(1)], m_range in Any[0:1, FullRange, ZeroTo]
+        lm = LM(0:1)
+        ml = SphericalHarmonicModes.flip(lm)
+        @test SphericalHarmonicModes.ofordering(lm, ml) == lm
+        @test SphericalHarmonicModes.ofordering(lm, lm) == lm
+        @test SphericalHarmonicModes.ofordering(ml, lm) == ml
+        @test SphericalHarmonicModes.ofordering(ml, lm) == ml
+    end
+end
+
 @testset "intersect" begin
 	@testset "same l, different m" begin
 		for T in [LM, ML]
