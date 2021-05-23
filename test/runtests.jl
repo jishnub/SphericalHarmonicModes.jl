@@ -869,6 +869,7 @@ end
 		@test flip(m) == ML(0:1)
 		@test LM(m) === m
         @test convert(LM, m) === m
+        @test flip(SphericalHarmonicModes.basetype(LM(1:2))) == ML
     end
     @testset "ML" begin
 		m = ML(0:1)
@@ -877,6 +878,18 @@ end
 		@test flip(m) == LM(0:1)
 		@test ML(m) === m
         @test convert(ML, m) === m
+        @test flip(SphericalHarmonicModes.basetype(ML(1:2))) == LM
+    end
+end
+
+@testset "ordering" begin
+    for l_range in Any[0:1, ZeroTo(1)], m_range in Any[0:1, FullRange, ZeroTo]
+        lm = LM(0:1)
+        ml = SphericalHarmonicModes.flip(lm)
+        @test SphericalHarmonicModes.ofordering(lm, ml) == lm
+        @test SphericalHarmonicModes.ofordering(lm, lm) == lm
+        @test SphericalHarmonicModes.ofordering(ml, lm) == ml
+        @test SphericalHarmonicModes.ofordering(ml, lm) == ml
     end
 end
 

@@ -356,6 +356,9 @@ for DT in [:LM, :ML]
     @eval Base.:(==)(a::$DT, b::$DT) = l_range(a) == l_range(b) && m_range(a) == m_range(b)
 end
 
+basetype(S::ML) = ML
+basetype(S::LM) = LM
+
 """
     SphericalHarmonicModes.flip(mr::SphericalHarmonicModes.SHModeRange)
 
@@ -382,8 +385,35 @@ julia> SphericalHarmonicModes.flip(LM(0:1)) == ML(0:1)
 true
 ```
 """
-flip(m::LM) = ML(m)
-flip(m::ML) = LM(m)
+flip(m::SHModeRange) = flip(typeof(m))(m)
+flip(::Type{ML}) = LM
+flip(::Type{LM}) = ML
+flip(::Type{LM{LT,MT}}) where {LT,MT} = ML{LT,MT}
+flip(::Type{ML{LT,MT}}) where {LT,MT} = LM{LT,MT}
+
+"""
+    SphericalHarmonicModes.ofordering(S, m)
+
+Convert `m` to the ordering of `S`.
+
+# Examples
+```jldoctest
+julia> SphericalHarmonicModes.ofordering(LM(0:1), ML(0:1)) |> collect
+4-element Vector{Tuple{Int64, Int64}}:
+ (1, -1)
+ (0, 0)
+ (1, 0)
+ (1, 1)
+
+julia> SphericalHarmonicModes.ofordering(ML(0:1), ML(0:1)) |> collect
+4-element Vector{Tuple{Int64, Int64}}:
+ (0, 0)
+ (1, -1)
+ (1, 0)
+ (1, 1)
+```
+"""
+ofordering(S::SHModeRange, m::SHModeRange) = basetype(S)(m)
 
 Base.convert(::Type{T}, m::SHModeRange) where {T<:SHModeRange} = m isa T ? m : T(m)
 
