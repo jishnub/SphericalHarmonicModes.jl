@@ -1,8 +1,9 @@
 module SphericalHarmonicModes
 
+using Base: Integer
 import Base: @propagate_inbounds
 
-export LM, ML, L2L1Triangle
+export LM, ML, L2L1Triangle, L1L2Triangle
 export FullRange, ZeroTo, ToZero, SingleValuedRange
 export modeindex, l_range, m_range, l2_range, l1_range
 
@@ -167,6 +168,8 @@ for DT in [:LM, :ML]
 end
 (::Type{S})(x::SHModeRange) where {S<:SHModeRange} = S(l_range(x), m_range(x))
 
+abstract type AbstractTriangleIterator <: ModeRange end
+
 """
     L2L1Triangle(l1_min::Int, l1_max::Int, Δl_max::Int, l2_min::Int = max(0, l1_min - Δl_max), l2_max = l1_max + Δl_max)
     L2L1Triangle(l1_range::AbstractUnitRange{Int}, Δl_max::Int, l2_range::AbstractUnitRange{Int})
@@ -182,7 +185,7 @@ If `l2_range` is not specified, it defaults to the maximal range permissible.
 # Examples
 ```jldoctest
 julia> L2L1Triangle(1:2, 2) |> collect
-9-element $(Array{Tuple{Int64,Int64},1}):
+9-element Vector{Tuple{Int64, Int64}}:
  (0, 1)
  (1, 1)
  (2, 1)
@@ -194,7 +197,7 @@ julia> L2L1Triangle(1:2, 2) |> collect
  (4, 2)
 
 julia> L2L1Triangle(2:3, 1) |> collect
-6-element $(Array{Tuple{Int64,Int64},1}):
+6-element Vector{Tuple{Int64, Int64}}:
  (1, 2)
  (2, 2)
  (3, 2)
@@ -203,14 +206,14 @@ julia> L2L1Triangle(2:3, 1) |> collect
  (4, 3)
 
 julia> L2L1Triangle(2:3, 1, 2:3) |> collect
-4-element $(Array{Tuple{Int64,Int64},1}):
+4-element Vector{Tuple{Int64, Int64}}:
  (2, 2)
  (3, 2)
  (2, 3)
  (3, 3)
 ```
 """
-struct L2L1Triangle <: ModeRange
+struct L2L1Triangle <: AbstractTriangleIterator
     l1_min :: Int
     l1_max :: Int
     Δl_max :: Int
@@ -258,6 +261,58 @@ struct L2L1Triangle <: ModeRange
     end
 end
 Base.eltype(::L2L1Triangle) = Tuple{Int,Int}
+
+"""
+    L1L2Triangle(l1_min::Int, l1_max::Int, Δl_max::Int, l2_min::Int = max(0, l1_min - Δl_max), l2_max = l1_max + Δl_max)
+    L1L2Triangle(l1_range::AbstractUnitRange{Int}, Δl_max::Int, l2_range::AbstractUnitRange{Int})
+
+Return an iterator that loops over pairs of `(l1,l2)` where `l1` lies in `l1_range`,
+`l2` lies in `l2_range`, and `l2` and `l1` obey the triangle condition
+`max(0, l1 - Δl_max) ⩽ l2 ⩽ l1 + Δl_max`.
+If `l2_range` is not specified, it defaults to the maximal range permissible.
+
+!!! warning
+    The ranges `l1_range` and `l2_range` will be curtailed to the minimal permissible subsets.
+
+# Examples
+```jldoctest
+julia> L1L2Triangle(1:2, 2) |> collect
+9-element Vector{Tuple{Int64, Int64}}:
+ (1, 0)
+ (1, 1)
+ (1, 2)
+ (1, 3)
+ (2, 0)
+ (2, 1)
+ (2, 2)
+ (2, 3)
+ (2, 4)
+
+julia> L1L2Triangle(2:3, 1) |> collect
+6-element Vector{Tuple{Int64, Int64}}:
+ (2, 1)
+ (2, 2)
+ (2, 3)
+ (3, 2)
+ (3, 3)
+ (3, 4)
+
+julia> L1L2Triangle(2:3, 1, 2:3) |> collect
+4-element Vector{Tuple{Int64, Int64}}:
+ (2, 2)
+ (2, 3)
+ (3, 2)
+ (3, 3)
+```
+"""
+struct L1L2Triangle <: AbstractTriangleIterator
+    l2l1 :: L2L1Triangle
+end
+Base.eltype(::L1L2Triangle) = Tuple{Int,Int}
+
+L2L1Triangle(l::L2L1Triangle) = l
+L2L1Triangle(l::L1L2Triangle) = l.l2l1
+L1L2Triangle(l::L1L2Triangle) = l
 
 throw_mboundserror(l_max, m) =
     throw(ArgumentError(" m = $m does not satisfy -$l_max ⩽ m ⩽ $l_max"))
@@ -356,8 +411,8 @@ for DT in [:LM, :ML]
     @eval Base.:(==)(a::$DT, b::$DT) = l_range(a) == l_range(b) && m_range(a) == m_range(b)
 end
 
-basetype(S::ML) = ML
-basetype(S::LM) = LM
+basetype(::ML) = ML
+basetype(::LM) = LM
 
 """
     SphericalHarmonicModes.flip(mr::SphericalHarmonicModes.SHModeRange)
@@ -414,8 +469,10 @@ julia> SphericalHarmonicModes.ofordering(ML(0:1), ML(0:1)) |> collect
 ```
 """
 ofordering(S::SHModeRange, m::SHModeRange) = basetype(S)(m)
+ofordering(S::AbstractTriangleIterator, t::AbstractTriangleIterator) = (typeof(S))(t)
 
 Base.convert(::Type{T}, m::SHModeRange) where {T<:SHModeRange} = m isa T ? m : T(m)
+Base.convert(::Type{T}, m::AbstractTriangleIterator) where {T<:AbstractTriangleIterator} = m isa T ? m : T(m)
 
 function L2L1Triangle(l_min::Integer, l_max::Integer, mr::SHModeRange, args...)
     Δ = last(l_range(mr))
@@ -432,6 +489,8 @@ function L2L1Triangle(l1_range::AbstractUnitRange{<:Integer}, args...)
     l1_min, l1_max = firstlast(l1_range)
     L2L1Triangle(l1_min, l1_max, args...)
 end
+
+L1L2Triangle(args::Union{Integer, AbstractUnitRange{<:Integer}, SHModeRange}...) = L1L2Triangle(L2L1Triangle(args...))
 
 # Get the ranges of the modes
 
@@ -455,6 +514,7 @@ m_range(mr::SHModeRange) = mr.m_range
 Return the range of `l1` spanned by the iterator.
 """
 l1_range(mr::L2L1Triangle) = mr.l1_min:mr.l1_max
+l1_range(mr::L1L2Triangle) = l1_range(mr.l2l1)
 
 """
     l2_range(mr::L2L1Triangle)
@@ -462,6 +522,7 @@ l1_range(mr::L2L1Triangle) = mr.l1_min:mr.l1_max
 Return the range of `l2` spanned by the iterator.
 """
 l2_range(mr::L2L1Triangle) = mr.l2_min:mr.l2_max
+l2_range(mr::L1L2Triangle) = l2_range(mr.l2l1)
 
 """
     l_range(mr::SphericalHarmonicModes.SHModeRange, m::Integer)
@@ -552,6 +613,7 @@ julia> l2_range(r, 2)
 @inline function l2_range(mr::L2L1Triangle, l1::Integer)
     max(l1 - mr.Δl_max, mr.l2_min):min(l1 + mr.Δl_max, mr.l2_max)
 end
+l2_range(mr::L1L2Triangle, l1::Integer) = l2_range(mr.l2l1, l1)
 
 # Convenience function to generate the first step in the iteration
 first_m(mr::LM) = first(m_range(mr))
@@ -624,6 +686,13 @@ function Base.iterate(mr::L2L1Triangle, state=((first_l2(mr),first_l1(mr)), 1))
     return (l2,l1),((next_l2,next_l1),count+1)
 end
 
+function Base.iterate(mr::L1L2Triangle, state...)
+    st = iterate(mr.l2l1, state...)
+    st === nothing && return nothing
+    val, nextst = st
+    reverse(val), nextst
+end
+
 function Base.in((l,m)::NTuple{2,Integer}, mr::SHModeRange)
     l in l_range(mr) && m in m_range(mr,l)
 end
@@ -634,6 +703,8 @@ function Base.in((l2,l1)::NTuple{2,Integer}, mr::L2L1Triangle)
     (l2 in l2_range(mr,l1))
 end
 
+Base.in((l1,l2)::NTuple{2,Integer}, mr::L1L2Triangle) = (l2,l1) in mr.l2l1
+
 function Base.last(mr::LM)
     m_max = last(m_range(mr))
     (last(l_range(mr, m_max)), m_max)
@@ -642,7 +713,8 @@ function Base.last(mr::ML)
     l_max = last(l_range(mr))
     (l_max, last(m_range(mr, l_max)) )
 end
-Base.last(mr::L2L1Triangle) = (last(l2_range(mr,mr.l1_max)), mr.l1_max)
+Base.last(mr::L2L1Triangle) = (last(l2_range(mr, mr.l1_max)), mr.l1_max)
+Base.last(mr::L1L2Triangle) = reverse(last(mr.l2l1))
 
 """
     modeindex(mr::SphericalHarmonicModes.ModeRange, mode::Tuple)
@@ -919,6 +991,8 @@ end
     nskip(mr, l1) + l2 - first(l2_range(mr,l1)) + 1
 end
 
+modeindex(mr::L1L2Triangle, l1, l2) = modeindex(mr.l2l1, l2, l1)
+
 modeindex(r, a, b) = modeindex(r, (a,b))
 modeindex(r, x::Tuple) = findfirst(isequal(x), r)
 
@@ -973,6 +1047,10 @@ function Base.show(io::IO, mr::L2L1Triangle)
     print(io,"L2L1Triangle(",l1_range(mr),", ",mr.Δl_max,
         ", ",l2_range(mr),")")
 end
+function Base.show(io::IO, mr::L1L2Triangle)
+    print(io,"L1L2Triangle(",l1_range(mr),", ",mr.l2l1.Δl_max,
+        ", ",l2_range(mr),")")
+end
 
 function Base.show(io::IO, ::MIME"text/plain", mr::LM)
     println(io, "Spherical harmonic modes with l increasing faster than m")
@@ -989,6 +1067,13 @@ end
 function Base.show(io::IO, ::MIME"text/plain", mr::L2L1Triangle)
     print(io, "Spherical harmonic modes (l2,l1) that satisfy ",
         "l1 - ",mr.Δl_max," ⩽ l2 ⩽ l1 + ",mr.Δl_max, ", with ",
+        first(l2_range(mr))," ⩽ l2 ⩽ ",last(l2_range(mr))," and ",
+        first(l1_range(mr))," ⩽ l1 ⩽ ",last(l1_range(mr))
+    )
+end
+function Base.show(io::IO, ::MIME"text/plain", mr::L1L2Triangle)
+    print(io, "Spherical harmonic modes (l1,l2) that satisfy ",
+        "l1 - ",mr.l2l1.Δl_max," ⩽ l2 ⩽ l1 + ",mr.l2l1.Δl_max, ", with ",
         first(l2_range(mr))," ⩽ l2 ⩽ ",last(l2_range(mr))," and ",
         first(l1_range(mr))," ⩽ l1 ⩽ ",last(l1_range(mr))
     )
