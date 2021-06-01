@@ -261,7 +261,6 @@ struct L2L1Triangle <: AbstractTriangleIterator
     end
 end
 Base.eltype(::L2L1Triangle) = Tuple{Int,Int}
-L2L1Triangle(l::L2L1Triangle) = l
 
 """
     L1L2Triangle(l1_min::Int, l1_max::Int, Δl_max::Int, l2_min::Int = max(0, l1_min - Δl_max), l2_max = l1_max + Δl_max)
@@ -311,8 +310,9 @@ struct L1L2Triangle <: AbstractTriangleIterator
 end
 Base.eltype(::L1L2Triangle) = Tuple{Int,Int}
 
-L2L1Triangle(l::L1L2Triangle) = l.l2l1
 L2L1Triangle(l::L2L1Triangle) = l
+L2L1Triangle(l::L1L2Triangle) = l.l2l1
+L1L2Triangle(l::L1L2Triangle) = l
 
 throw_mboundserror(l_max, m) =
     throw(ArgumentError(" m = $m does not satisfy -$l_max ⩽ m ⩽ $l_max"))
