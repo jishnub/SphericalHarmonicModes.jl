@@ -1,5 +1,5 @@
 using Test,SphericalHarmonicModes
-import SphericalHarmonicModes: ModeMissingError, SHModeRange,
+using SphericalHarmonicModes: ModeMissingError, SHModeRange,
 check_if_lm_range_is_valid, flip
 
 using Aqua
@@ -336,6 +336,8 @@ promote_typeof(x, y) = mapreduce(typeof, promote_type, (x, y))
 		m = L2L1Triangle(l_range, Δl_max)
 		@test m == L2L1Triangle(l_range,LM(0:Δl_max,0:0))
 		@test m == L2L1Triangle(l_range,ML(0:Δl_max,0:0))
+		@test L2L1Triangle(m) === m
+		@test L2L1Triangle(L1L2Triangle(m)) === m
 
 		l2_range = 5:8
 		mr = L2L1Triangle(l_range, Δl_max, l2_range)
@@ -358,6 +360,49 @@ promote_typeof(x, y) = mapreduce(typeof, promote_type, (x, y))
 		@test mr == L2L1Triangle(1:6,3,1:3)
 
 		@test eltype(m) == Tuple{Int,Int}
+
+		@testset "conversion" begin
+			@test convert(L1L2Triangle, m) === L1L2Triangle(m)
+			@test convert(L2L1Triangle, m) === m
+		end
+	end
+
+	@testset "L1L2Triangle " begin
+		Δl_max = 3
+		l_range = 1:10
+		m = L1L2Triangle(l_range, Δl_max)
+		@test m == L1L2Triangle(l_range,LM(0:Δl_max,0:0))
+		@test m == L1L2Triangle(l_range,ML(0:Δl_max,0:0))
+
+		@test L1L2Triangle(m) === m
+		@test L1L2Triangle(L2L1Triangle(m)) === m
+
+		l2_range = 5:8
+		mr = L1L2Triangle(l_range, Δl_max, l2_range)
+		@test mr == L1L2Triangle(2:10,3,5:8)
+		mr = L1L2Triangle(extrema(l_range)..., Δl_max, l2_range)
+		@test mr == L1L2Triangle(2:10,3,5:8)
+
+		l_range = 10:10
+		l2_range = 1:8
+		mr = L1L2Triangle(l_range, Δl_max, l2_range)
+		@test mr == L1L2Triangle(10:10,3,7:8)
+
+		l2_range = 1:20
+		mr = L1L2Triangle(l_range, Δl_max, l2_range)
+		@test mr == L1L2Triangle(10:10,3,7:13)
+
+		l_range = 1:10
+		l2_range = 1:3
+		mr = L1L2Triangle(l_range, Δl_max, l2_range)
+		@test mr == L1L2Triangle(1:6,3,1:3)
+
+		@test eltype(m) == Tuple{Int,Int}
+
+		@testset "conversion" begin
+			@test convert(L2L1Triangle, m) === L2L1Triangle(m)
+			@test convert(L1L2Triangle, m) === m
+		end
 	end
 
 	@testset "keys" begin
@@ -370,6 +415,10 @@ promote_typeof(x, y) = mapreduce(typeof, promote_type, (x, y))
 		@test eachindex(m) == Base.OneTo(8)
 
 		m = L2L1Triangle(1:2,1)
+		@test keys(m) == Base.OneTo(6)
+		@test eachindex(m) == Base.OneTo(6)
+
+		m = L1L2Triangle(1:2,1)
 		@test keys(m) == Base.OneTo(6)
 		@test eachindex(m) == Base.OneTo(6)
 	end
@@ -551,10 +600,11 @@ end
 		end
 	end
 
+	iterated_length(mr::SphericalHarmonicModes.AbstractTriangleIterator) =
+		iterated_length_template(mr, x->sum(length(l2_range(x,l1)) for l1 in l1_range(x)))
+
 	@testset "L2L1Triangle" begin
-		iterated_length(mr) = iterated_length_template(mr,
-								x->sum(length(l2_range(x,l1)) for l1 in l1_range(x)))
-		@testset "default s′minmax" begin
+		@testset "default l2minmax" begin
 			for l_min=0:l_cutoff,l_max=l_min:l_cutoff,Δl_max=0:l_cutoff
 				mr = L2L1Triangle(l_min,l_max,Δl_max)
 				@test length(mr) == iterated_length(mr)
@@ -568,6 +618,32 @@ end
 				l_min_trimmed = max(l_min,l2_min - Δl_max)
 				l_max_trimmed = min(l_max,l2_max + Δl_max)
 				mr = L2L1Triangle(l_min_trimmed,l_max_trimmed,Δl_max,l2_min,l2_max)
+				@test begin
+					res = length(mr) == iterated_length(mr)
+					if !res
+						println(mr)
+					end
+					res
+				end
+			end
+		end
+	end
+
+	@testset "L1L2Triangle" begin
+		@testset "default l2minmax" begin
+			for l_min=0:l_cutoff,l_max=l_min:l_cutoff,Δl_max=0:l_cutoff
+				mr = L1L2Triangle(l_min, l_max, Δl_max)
+				@test length(mr) == iterated_length(mr)
+			end
+		end
+
+		@testset "all" begin
+			for l_min=0:l_cutoff,l_max=l_min:l_cutoff,Δl_max=0:l_cutoff,
+				l2_min=max(l_min-Δl_max,0):l_max+Δl_max,l2_max=l2_min:l_max+Δl_max
+
+				l_min_trimmed = max(l_min,l2_min - Δl_max)
+				l_max_trimmed = min(l_max,l2_max + Δl_max)
+				mr = L1L2Triangle(l_min_trimmed,l_max_trimmed,Δl_max,l2_min,l2_max)
 				@test begin
 					res = length(mr) == iterated_length(mr)
 					if !res
@@ -612,6 +688,15 @@ end
 
         @test iterate(m, (last(m),length(m) + 1)) === nothing
     end
+	@testset "L1L2Triangle" begin
+		ml2l1 = L2L1Triangle(1:20, 20)
+		ml1l2 = L1L2Triangle(1:20, 20)
+		for (v1, v2) in zip(ml1l2, ml2l1)
+			@test v1 == reverse(v2)
+			@test v1 in ml1l2
+			@test v2 in ml2l1
+		end
+	end
 end
 
 @testset "LM ML modes" begin
@@ -784,6 +869,27 @@ end
 		end
 	end
 
+	@testset "L1L2Triangle" begin
+		for l_min=0:l_cutoff,l_max=l_min:l_cutoff,
+			Δl_max=0:l_cutoff,
+			s′min=max(0,l_min-Δl_max):l_max+Δl_max,s′max=s′min:l_max+Δl_max
+
+			l_max_trimmed = min(l_max,s′max + Δl_max)
+			l_min_trimmed = max(l_min,s′min - Δl_max)
+
+			m3 = L1L2Triangle(l_min_trimmed,l_max_trimmed,Δl_max,s′min,s′max)
+			for (ind,(s′,s)) in enumerate(m3)
+				@test begin
+					res = modeindex(m3,(s′,s)) == modeindex(m3,s′,s) == modeindex2(m3,s′,s) == ind
+					if !res
+						println(m3)
+					end
+					res
+				end
+			end
+		end
+	end
+
     @testset "other iterators" begin
         r = collect((i,i) for i in 1:1000)
         for (ind, t) in enumerate(r)
@@ -794,20 +900,48 @@ end
     end
 end
 
-@testset "last" begin
-	@testset "ML" begin
-		m1 = ML(rand(1:5):rand(6:10))
-		@test last(collect(m1)) == last(m1)
-	end
+@testset "firstlast" begin
+	@testset "first" begin
+		@testset "ML" begin
+			m1 = ML(rand(1:5):rand(6:10))
+			@test first(collect(m1)) == first(m1)
+		end
 
-	@testset "LM" begin
-		m2 = LM(rand(1:5):rand(6:10))
-		@test last(collect(m2)) == last(m2)
-	end
+		@testset "LM" begin
+			m2 = LM(rand(1:5):rand(6:10))
+			@test first(collect(m2)) == first(m2)
+		end
 
-	@testset "L2L1Triangle" begin
-		m3 = L2L1Triangle(rand(1:3):rand(4:10),rand(1:5))
-		@test last(collect(m3)) == last(m3)
+		@testset "L2L1Triangle" begin
+			m3 = L2L1Triangle(rand(1:3):rand(4:10),rand(1:5))
+			@test first(collect(m3)) == first(m3)
+		end
+
+		@testset "L1L2Triangle" begin
+			m3 = L1L2Triangle(rand(1:3):rand(4:10),rand(1:5))
+			@test first(collect(m3)) == first(m3)
+		end
+	end
+	@testset "last" begin
+		@testset "ML" begin
+			m1 = ML(rand(1:5):rand(6:10))
+			@test last(collect(m1)) == last(m1)
+		end
+
+		@testset "LM" begin
+			m2 = LM(rand(1:5):rand(6:10))
+			@test last(collect(m2)) == last(m2)
+		end
+
+		@testset "L2L1Triangle" begin
+			m3 = L2L1Triangle(rand(1:3):rand(4:10),rand(1:5))
+			@test last(collect(m3)) == last(m3)
+		end
+
+		@testset "L1L2Triangle" begin
+			m3 = L1L2Triangle(rand(1:3):rand(4:10),rand(1:5))
+			@test last(collect(m3)) == last(m3)
+		end
 	end
 end
 
@@ -891,6 +1025,13 @@ end
         @test SphericalHarmonicModes.ofordering(ml, lm) == ml
         @test SphericalHarmonicModes.ofordering(ml, lm) == ml
     end
+
+	m21 = L2L1Triangle(1:3, 3)
+	m12 = L1L2Triangle(1:3, 3)
+	@test SphericalHarmonicModes.ofordering(m21, m21) === m21
+	@test SphericalHarmonicModes.ofordering(m21, m12) === m21
+	@test SphericalHarmonicModes.ofordering(m12, m21) === m12
+	@test SphericalHarmonicModes.ofordering(m12, m12) === m12
 end
 
 @testset "intersect" begin
@@ -1001,6 +1142,7 @@ end
     testshow(io, LM(1:2,1:1))
     testshow(io, ML(1:2,1:1))
     testshow(io, L2L1Triangle(1:2,1))
+    testshow(io, L1L2Triangle(1:2,1))
 
     showerror(io, ModeMissingError(LM(1:1), (2,2)) )
     showerror(io, ModeMissingError(L2L1Triangle(1:1,1), (3,3)) )
