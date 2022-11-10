@@ -1018,8 +1018,12 @@ Base.lastindex(mr::ModeRange) = length(mr)
 
 Base.keys(mr::ModeRange) = axes(mr, 1)
 
-@inline function Base.uncolon(inds::Tuple{ModeRange,Vararg{Any}}, I::Tuple{Colon, Vararg{Any}})
-    Base.uncolon(axes(first(inds)), I)
+if VERSION >= v"1.9.0-DEV.827"
+    @inline Base.uncolon(inds::Tuple{ModeRange,Vararg{Any}}) = Base.uncolon(axes(first(inds)))
+else
+    @inline function Base.uncolon(inds::Tuple{ModeRange,Vararg{Any}}, I::Tuple{Colon, Vararg{Any}})
+        Base.uncolon(axes(first(inds)), I)
+    end
 end
 
 # Intersect ranges
